@@ -1,0 +1,30 @@
+model Club {
+  id              Int      @id @default(autoincrement()) @map("club_id")
+  clubName        String   @unique @map("club_name")
+  description     String?
+  departmentId    Int?     @map("department_id")
+  establishedYear Int?     @map("established_year")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  department Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  events     Event[]
+  rankings   ClubRanking[]
+
+  @@map("clubs")
+}
+
+model ClubRanking {
+  id                Int     @id @default(autoincrement()) @map("ranking_id")
+  clubId            Int     @map("club_id")
+  year              Int
+  totalEventsScore  Decimal @default(0) @map("total_events_score") @db.Decimal(6, 2)
+  sponsorshipScore  Decimal @default(0) @map("sponsorship_score") @db.Decimal(6, 2)
+  feedbackScore     Decimal @default(0) @map("feedback_score") @db.Decimal(6, 2)
+  finalScore        Decimal @default(0) @map("final_score") @db.Decimal(6, 2)
+  rankPosition      Int?    @map("rank_position")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, year])
+  @@map("club_rankings")
+}

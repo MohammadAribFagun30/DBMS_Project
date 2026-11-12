@@ -1,0 +1,12 @@
+// Anonymous by design: no user_id is stored with a feedback row.
+model Feedback {
+  id          Int      @id @default(autoincrement()) @map("feedback_id")
+  eventId     Int      @map("event_id")
+  rating      Int
+  comments    String?
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}

@@ -1,0 +1,23 @@
+model Sponsor {
+  id           Int     @id @default(autoincrement()) @map("sponsor_id")
+  companyName  String  @unique @map("company_name")
+  contactEmail String? @map("contact_email")
+
+  eventSponsors EventSponsor[]
+
+  @@map("sponsors")
+}
+
+model EventSponsor {
+  id              Int     @id @default(autoincrement()) @map("event_sponsor_id")
+  eventId         Int     @map("event_id")
+  sponsorId       Int     @map("sponsor_id")
+  amountFunded    Decimal @map("amount_funded") @db.Decimal(12, 2)
+  sponsorshipTier String? @map("sponsorship_tier")
+
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sponsor Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, sponsorId])
+  @@map("event_sponsors")
+}

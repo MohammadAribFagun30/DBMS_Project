@@ -1,0 +1,18 @@
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum EventStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  ATTENDED
+  CANCELLED
+}
