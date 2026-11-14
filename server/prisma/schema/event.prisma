@@ -1,23 +1,22 @@
 model Event {
-  id          Int         @id @default(autoincrement()) @map("event_id")
-  clubId      Int         @map("club_id")
-  venueId     Int?        @map("venue_id")
-  title       String
-  description String?
-  eventType   String?     @map("event_type")
-  startTime   DateTime    @map("start_time")
-  endTime     DateTime    @map("end_time")
-  status      EventStatus @default(PENDING)
-  createdById Int?        @map("created_by")
-  createdAt   DateTime    @default(now()) @map("created_at")
-
-  club          Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  venue         Venue?         @relation(fields: [venueId], references: [id], onDelete: SetNull)
-  createdBy     User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  workshop      Workshop?
-  registrations Registration[]
+  id            Int            @id @default(autoincrement()) @map("event_id")
+  clubId        Int            @map("club_id")
+  venueId       Int?           @map("venue_id")
+  title         String
+  description   String?
+  eventType     String?        @map("event_type")
+  startTime     DateTime       @map("start_time")
+  endTime       DateTime       @map("end_time")
+  status        EventStatus    @default(PENDING)
+  createdById   Int?           @map("created_by")
+  createdAt     DateTime       @default(now()) @map("created_at")
   sponsors      EventSponsor[]
+  club          Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdBy     User?          @relation(fields: [createdById], references: [id])
+  venue         Venue?         @relation(fields: [venueId], references: [id])
   feedbacks     Feedback[]
+  registrations Registration[]
+  workshop      Workshop?
 
   @@map("events")
 }
@@ -28,8 +27,7 @@ model Workshop {
   speakerName   String  @map("speaker_name")
   speakerBio    String? @map("speaker_bio")
   prerequisites String?
-
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event         Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@map("workshops")
 }

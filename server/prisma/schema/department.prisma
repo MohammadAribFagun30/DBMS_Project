@@ -2,9 +2,8 @@ model Department {
   id             Int      @id @default(autoincrement()) @map("department_id")
   departmentName String   @unique @map("department_name")
   createdAt      DateTime @default(now()) @map("created_at")
-
-  users User[]
-  clubs Club[]
+  clubs          Club[]
+  users          User[]
 
   @@map("departments")
 }

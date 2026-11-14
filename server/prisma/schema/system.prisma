@@ -5,8 +5,7 @@ model AuditLog {
   entityType String?  @map("entity_type")
   entityId   Int?     @map("entity_id")
   timestamp  DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
 }
@@ -17,8 +16,7 @@ model Notification {
   message   String
   isRead    Boolean  @default(false) @map("is_read")
   createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }

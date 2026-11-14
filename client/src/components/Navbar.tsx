@@ -1,0 +1,316 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { apiNotifications } from '../services/api';
+import { NotificationItem } from '../types';
+import {
+  Compass,
+  Trophy,
+  Award,
+  Ticket,
+  ShieldCheck,
+  Bell,
+  LogOut,
+  LogIn,
+  CheckCircle,
+  Menu,
+  X,
+  Sparkles,
+  Database,
+  ArrowRight
+} from 'lucide-react';
+
+export const Navbar: React.FC = () => {
+  const { user, isAuthenticated, isAdmin, logout, switchDemoRole, backendOnline } = useAuth();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      apiNotifications.getMy().then((res) => {
+        setNotifications(res.notifications);
+        setUnreadCount(res.unreadCount);
+      }).catch(() => {});
+    }
+  }, [isAuthenticated, location.pathname]);
+
+  const markAllRead = async () => {
+    await apiNotifications.markAllRead();
+    setUnreadCount(0);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const navLinks = [
+    { to: '/events', label: 'Events & Workshops', icon: Compass },
+    { to: '/clubs', label: 'Clubs & Rankings', icon: Trophy },
+    { to: '/verify', label: 'Verify Certificate', icon: Award },
+    ...(isAuthenticated ? [{ to: '/my-activity', label: 'My Activity', icon: Ticket }] : []),
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin Hub', icon: ShieldCheck, highlight: true }] : []),
+  ];
+
+  return (
+    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+      {/* Top micro-banner for backend connection status & role switcher */}
+      <div className="bg-slate-900 text-slate-300 px-4 py-1.5 text-xs flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5">
+            <span className={`w-2 h-2 rounded-full animate-pulse ${backendOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span className="font-medium text-slate-200">
+              {backendOnline ? 'Backend API: Connected (Port 5050)' : 'Backend API: Offline / Demo Mode Active'}
+            </span>
+          </span>
+          <span className="hidden md:inline-block text-slate-500">•</span>
+          <span className="hidden md:inline-block text-slate-400">
+            PostgreSQL Club Event & Workshop System
+          </span>
+        </div>
+
+        {/* Quick Role Switcher for easy testing */}
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline text-slate-400">Role Preview:</span>
+          <div className="inline-flex rounded-lg bg-slate-800 p-0.5 border border-slate-700">
+            <button
+              onClick={() => switchDemoRole('STUDENT')}
+              className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all ${
+                !isAdmin ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Student
+            </button>
+            <button
+              onClick={() => switchDemoRole('ADMIN')}
+              className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all ${
+                isAdmin ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Admin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-700 bg-clip-text text-transparent">
+                ClubVerse
+              </span>
+              <span className="block text-[10px] uppercase font-bold tracking-widest text-indigo-600 -mt-1">
+                Campus Portal
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-700 font-semibold'
+                      : item.highlight
+                      ? 'text-indigo-600 hover:bg-indigo-50/70 font-semibold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {item.label}
+                  {item.highlight && (
+                    <span className="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                      Admin
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* User actions / Auth */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Notifications Bell */}
+            {isAuthenticated && (
+              <div className="relative">
+                <button
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl relative transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-600 rounded-full ring-2 ring-white" />
+                  )}
+                </button>
+
+                {/* Notifications Dropdown */}
+                {notifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-900">Notifications</span>
+                        {unreadCount > 0 && (
+                          <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                            {unreadCount} new
+                          </span>
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllRead}
+                          className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-slate-500 text-sm">
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <div
+                            key={n.id}
+                            className={`p-3.5 text-xs transition-colors ${
+                              !n.isRead ? 'bg-indigo-50/50' : 'hover:bg-slate-50'
+                            }`}
+                          >
+                            <p className="text-slate-800 leading-relaxed font-medium">{n.message}</p>
+                            <span className="text-[10px] text-slate-400 mt-1 block">
+                              {new Date(n.createdAt).toLocaleDateString()} at{' '}
+                              {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Profile Pill */}
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center">
+                  {user?.fullName?.charAt(0) || 'U'}
+                </div>
+                <div className="text-left hidden lg:block">
+                  <p className="text-xs font-bold text-slate-900 leading-tight">{user?.fullName}</p>
+                  <span className="text-[10px] font-semibold text-indigo-600 uppercase">
+                    {user?.role}
+                  </span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2">
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600"
+              >
+                <Icon className="w-5 h-5 text-indigo-600" />
+                {item.label}
+              </Link>
+            );
+          })}
+
+          <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+            {isAuthenticated ? (
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <div>
+                  <p className="text-sm font-bold text-slate-900">{user?.fullName}</p>
+                  <p className="text-xs text-indigo-600 uppercase font-semibold">{user?.role}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-rose-600"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2.5 text-sm font-semibold border border-slate-300 rounded-xl text-slate-800"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
