@@ -9,8 +9,8 @@ const router = Router();
 
 router.get("/", eventController.getAll);
 router.get("/:id", eventController.getById);
-router.post("/", auth(), validateRequest(createEventSchema), eventController.create);
-router.patch("/:id", auth(), validateRequest(updateEventSchema), eventController.update);
+router.post("/", auth(Role.ADMIN), validateRequest(createEventSchema), eventController.create);
+router.patch("/:id", auth(Role.ADMIN), validateRequest(updateEventSchema), eventController.update);
 router.patch("/:id/status", auth(Role.ADMIN), validateRequest(updateEventStatusSchema), eventController.updateStatus);
 router.delete("/:id", auth(Role.ADMIN), eventController.remove);
 router.get("/:id/registrations", auth(Role.ADMIN), eventController.getRegistrations);

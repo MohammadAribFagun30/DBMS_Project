@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
 
-      if (storedToken && storedUser) {
+      if (storedToken && storedUser && !storedToken.startsWith('demo-')) {
         setToken(storedToken);
         try {
           setUser(JSON.parse(storedUser));
@@ -46,20 +46,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           localStorage.removeItem('user');
         }
       } else {
-        // Default to a demo student session so the user immediately gets a rich interactive experience
-        const defaultStudent: User = {
-          id: 2,
-          studentId: 'CSE-2201',
-          fullName: 'Alice Rahman',
-          email: 'alice@uni.edu',
-          role: 'STUDENT',
-          departmentId: 1,
-          department: { id: 1, departmentName: 'Computer Science & Engineering' },
-        };
-        setUser(defaultStudent);
-        setToken('demo-student-token');
-        localStorage.setItem('token', 'demo-student-token');
-        localStorage.setItem('user', JSON.stringify(defaultStudent));
+        // Automatically connect with student credentials on startup
+        try {
+          const res = await apiAuth.login({ email: 'student@iiuc.ac.bd', password: 'student123' });
+          setToken(res.accessToken);
+          setUser(res.user);
+          localStorage.setItem('token', res.accessToken);
+          localStorage.setItem('user', JSON.stringify(res.user));
+        } catch {
+          const defaultStudent: User = {
+            id: 3,
+            studentId: 'C221001',
+            fullName: 'Alice Rahman',
+            email: 'student@iiuc.ac.bd',
+            role: 'STUDENT',
+            departmentId: 1,
+            department: { id: 1, departmentName: 'Computer Science & Engineering' },
+          };
+          setUser(defaultStudent);
+          setToken('demo-student-token');
+          localStorage.setItem('token', 'demo-student-token');
+          localStorage.setItem('user', JSON.stringify(defaultStudent));
+        }
       }
       setIsLoading(false);
     };
@@ -104,38 +112,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     toast.info('Logged out successfully');
   };
 
-  const switchDemoRole = (role: Role) => {
+  const switchDemoRole = async (role: Role) => {
+    setIsLoading(true);
     if (role === 'ADMIN') {
-      const adminUser: User = {
-        id: 1,
-        studentId: 'ADMIN-001',
-        fullName: 'System Administrator',
-        email: 'admin@club.edu',
-        role: 'ADMIN',
-        departmentId: 1,
-        department: { id: 1, departmentName: 'Computer Science & Engineering' }
-      };
-      setUser(adminUser);
-      setToken('demo-admin-token');
-      localStorage.setItem('token', 'demo-admin-token');
-      localStorage.setItem('user', JSON.stringify(adminUser));
-      toast.success('Switched to Admin mode (admin@club.edu)');
+      try {
+        const res = await apiAuth.login({ email: 'admin@club.edu', password: 'admin123' });
+        setToken(res.accessToken);
+        setUser(res.user);
+        localStorage.setItem('token', res.accessToken);
+        localStorage.setItem('user', JSON.stringify(res.user));
+        toast.success('Switched to Admin mode (admin@club.edu)');
+      } catch {
+        const adminUser: User = {
+          id: 1,
+          studentId: 'ADMIN-001',
+          fullName: 'System Administrator',
+          email: 'admin@club.edu',
+          role: 'ADMIN',
+          departmentId: 1,
+          department: { id: 1, departmentName: 'Computer Science & Engineering' }
+        };
+        setUser(adminUser);
+        setToken('demo-admin-token');
+        localStorage.setItem('token', 'demo-admin-token');
+        localStorage.setItem('user', JSON.stringify(adminUser));
+        toast.success('Switched to Admin mode (admin@club.edu)');
+      }
     } else {
-      const studentUser: User = {
-        id: 2,
-        studentId: 'CSE-2201',
-        fullName: 'Alice Rahman',
-        email: 'alice@uni.edu',
-        role: 'STUDENT',
-        departmentId: 1,
-        department: { id: 1, departmentName: 'Computer Science & Engineering' }
-      };
-      setUser(studentUser);
-      setToken('demo-student-token');
-      localStorage.setItem('token', 'demo-student-token');
-      localStorage.setItem('user', JSON.stringify(studentUser));
-      toast.success('Switched to Student mode (alice@uni.edu)');
+      try {
+        const res = await apiAuth.login({ email: 'student@iiuc.ac.bd', password: 'student123' });
+        setToken(res.accessToken);
+        setUser(res.user);
+        localStorage.setItem('token', res.accessToken);
+        localStorage.setItem('user', JSON.stringify(res.user));
+        toast.success('Switched to Student mode (student@iiuc.ac.bd)');
+      } catch {
+        const studentUser: User = {
+          id: 3,
+          studentId: 'C221001',
+          fullName: 'Alice Rahman',
+          email: 'student@iiuc.ac.bd',
+          role: 'STUDENT',
+          departmentId: 1,
+          department: { id: 1, departmentName: 'Computer Science & Engineering' }
+        };
+        setUser(studentUser);
+        setToken('demo-student-token');
+        localStorage.setItem('token', 'demo-student-token');
+        localStorage.setItem('user', JSON.stringify(studentUser));
+        toast.success('Switched to Student mode (student@iiuc.ac.bd)');
+      }
     }
+    setIsLoading(false);
   };
 
   return (

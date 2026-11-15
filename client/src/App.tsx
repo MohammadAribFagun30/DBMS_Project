@@ -22,15 +22,16 @@ const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children
   return <>{children}</>;
 };
 
-const ProtectedAuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+const ProtectedStudentRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isAdmin } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   return <>{children}</>;
 };
 
 export const AppContent: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-indigo-600 selection:text-white">
       <Navbar />
       <main className="flex-1">
         <Routes>
@@ -41,9 +42,9 @@ export const AppContent: React.FC = () => {
           <Route
             path="/my-activity"
             element={
-              <ProtectedAuthRoute>
+              <ProtectedStudentRoute>
                 <StudentPortalPage />
-              </ProtectedAuthRoute>
+              </ProtectedStudentRoute>
             }
           />
           <Route

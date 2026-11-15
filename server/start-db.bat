@@ -1,0 +1,3 @@
+@echo off
+echo Starting local PostgreSQL database on port 5433...
+"C:\Program Files\PostgreSQL\18\bin\postgres.exe" -D "%~dp0pgdata" -p 5433

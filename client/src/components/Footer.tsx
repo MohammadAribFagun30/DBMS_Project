@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
               <span className="font-bold text-lg text-white">ClubVerse</span>
             </div>
             <p className="text-slate-400 text-xs sm:text-sm max-w-sm leading-relaxed mb-4">
-              Centralized University Platform for club activities, workshops, registrations, digital event passes, verified certificates, and annual 3-factor club rankings.
+              International Islamic University Chittagong (IIUC) centralized platform for club activities, workshops, registrations, digital event passes, verified certificates, and annual 3-factor club rankings.
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -45,9 +45,9 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} University Club & Event Management System. Built for academic excellence.</p>
+          <p>© {new Date().getFullYear()} International Islamic University Chittagong (IIUC). Built for academic excellence.</p>
           <p className="flex items-center gap-1">
-            Engineered with <Heart className="w-3.5 h-3.5 text-rose-500 inline fill-rose-500" /> for campus student life
+            Engineered with <Heart className="w-3.5 h-3.5 text-rose-500 inline fill-rose-500" /> for IIUC student life
           </p>
         </div>
       </div>

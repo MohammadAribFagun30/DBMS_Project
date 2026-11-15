@@ -77,55 +77,55 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
       await apiEvents.create(payload);
       toast.success(
         isAdmin
-          ? 'Event created and approved!'
-          : 'Event proposal submitted successfully! Pending admin approval.'
+          ? 'Event published successfully into catalog!'
+          : 'Event proposal submitted for administrative review!'
       );
       onSuccess();
       onClose();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to propose event');
+      toast.error(err.message || 'Failed to publish event');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="bg-gradient-to-r from-indigo-700 to-purple-600 p-6 text-white relative">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="relative bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-white">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-900 via-indigo-950 to-purple-950 p-6 sm:p-8 text-white relative border-b border-indigo-900/50">
           <button
             onClick={onClose}
             className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2 mb-1 text-indigo-100 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
-            {isAdmin ? 'Create Campus Event' : 'Propose New Club Event'}
+            Official Event Publishing Desk
           </div>
-          <h3 className="text-xl font-extrabold">
-            {isAdmin ? 'Publish Official Event' : 'Submit Event Proposal'}
-          </h3>
-          <p className="text-xs text-indigo-100 mt-1">
-            {isAdmin
-              ? 'Event will be approved immediately and listed for student registration.'
-              : 'Submitted proposals are reviewed by system administrators before going live.'}
+          <h2 className="text-xl sm:text-2xl font-extrabold">
+            {isAdmin ? 'Publish Official Campus Event' : 'Propose New Club Event'}
+          </h2>
+          <p className="text-xs text-indigo-200 mt-1">
+            Fill in the event details, venue allocation, and speaker syllabus.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs sm:text-sm">
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 max-h-[72vh] overflow-y-auto">
           {/* Organizing Club */}
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
-              Organizing Club <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Host Club *
             </label>
             <select
               required
               value={form.clubId}
               onChange={(e) => setForm({ ...form, clubId: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-200"
             >
-              <option value="">Select Club...</option>
+              <option value="">Select Host Club...</option>
               {clubs.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.clubName}
@@ -136,173 +136,165 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
 
           {/* Event Title */}
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
-              Event Title <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Event Title *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. NextGen Web Development Bootcamp"
+              placeholder="e.g. Modern Cloud Native Architecture with Kubernetes"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500"
             />
           </div>
 
-          {/* Event Type & Venue */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Type & Venue */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Event Type</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                Event Category *
+              </label>
               <select
                 value={form.eventType}
                 onChange={(e) => {
                   setForm({ ...form, eventType: e.target.value });
                   setIsWorkshop(e.target.value === 'WORKSHOP');
                 }}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-200"
               >
-                <option value="WORKSHOP">WORKSHOP</option>
-                <option value="HACKATHON">HACKATHON</option>
-                <option value="SEMINAR">SEMINAR</option>
-                <option value="COMPETITION">COMPETITION</option>
-                <option value="SOCIAL">SOCIAL</option>
+                <option value="WORKSHOP">Technical Workshop</option>
+                <option value="HACKATHON">Hackathon / Sprint</option>
+                <option value="SEMINAR">Guest Seminar</option>
+                <option value="COMPETITION">Campus Competition</option>
+                <option value="SOCIAL">Social / Networking</option>
               </select>
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Venue</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                Campus Venue
+              </label>
               <select
                 value={form.venueId}
                 onChange={(e) => setForm({ ...form, venueId: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-200"
               >
                 <option value="">Select Venue...</option>
                 {venues.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.venueName} ({v.capacity} seats)
+                    {v.venueName} (Capacity: {v.capacity})
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Schedule Date & Time */}
-          <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Start Date & Time *</label>
+          {/* Date & Time */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+            <div className="space-y-3">
+              <span className="text-[11px] font-bold text-indigo-400 block uppercase tracking-wider">
+                Start Schedule *
+              </span>
               <input
                 type="date"
                 required
                 value={form.startDate}
-                onChange={(e) => setForm({ ...form, startDate: e.target.value, endDate: form.endDate || e.target.value })}
-                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs mb-1 bg-white"
+                onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
               />
               <input
                 type="time"
-                required
                 value={form.startTime}
                 onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs bg-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
               />
             </div>
 
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">End Date & Time *</label>
+            <div className="space-y-3">
+              <span className="text-[11px] font-bold text-indigo-400 block uppercase tracking-wider">
+                End Schedule *
+              </span>
               <input
                 type="date"
                 required
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs mb-1 bg-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
               />
               <input
                 type="time"
-                required
                 value={form.endTime}
                 onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs bg-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Description</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Description & Objectives
+            </label>
             <textarea
               rows={3}
-              placeholder="What will participants learn or do?"
+              placeholder="Outline what participants will learn, required software, tools, etc."
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full p-3 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 resize-none"
             />
           </div>
 
           {/* Workshop Details toggle */}
-          <div className="pt-2 border-t border-slate-100">
-            <label className="flex items-center gap-2 cursor-pointer mb-3">
-              <input
-                type="checkbox"
-                checked={isWorkshop}
-                onChange={(e) => setIsWorkshop(e.target.checked)}
-                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Mic className="w-4 h-4 text-indigo-600" />
-                Include Workshop Speaker Information
+          {isWorkshop && (
+            <div className="p-4 bg-indigo-950/40 rounded-2xl border border-indigo-800/40 space-y-4">
+              <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider block flex items-center gap-1.5">
+                <Mic className="w-4 h-4" /> Guest Speaker / Instructor Profile
               </span>
-            </label>
 
-            {isWorkshop && (
-              <div className="space-y-3 p-3.5 bg-indigo-50/50 rounded-2xl border border-indigo-100 animate-in fade-in">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Speaker Name *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Dr. John Doe"
-                    value={form.speakerName}
-                    onChange={(e) => setForm({ ...form, speakerName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Speaker Bio</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Lead Engineer at OpenAI"
-                    value={form.speakerBio}
-                    onChange={(e) => setForm({ ...form, speakerBio: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Prerequisites</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Laptop with VS Code, basic Python knowledge"
-                    value={form.prerequisites}
-                    onChange={(e) => setForm({ ...form, prerequisites: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white"
-                  />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Speaker Name"
+                  value={form.speakerName}
+                  onChange={(e) => setForm({ ...form, speakerName: e.target.value })}
+                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Speaker Title / Bio (e.g. Senior SRE @ Google)"
+                  value={form.speakerBio}
+                  onChange={(e) => setForm({ ...form, speakerBio: e.target.value })}
+                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+                />
               </div>
-            )}
-          </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+              <input
+                type="text"
+                placeholder="Prerequisites (e.g. Basic Docker knowledge, Laptop required)"
+                value={form.prerequisites}
+                onChange={(e) => setForm({ ...form, prerequisites: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+              />
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-xl"
+              className="px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 transition-all disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs sm:text-sm shadow-xl shadow-sky-600/30 transition-all flex items-center gap-1.5 disabled:opacity-50"
             >
-              <Send className="w-3.5 h-3.5" />
-              {submitting ? 'Submitting...' : isAdmin ? 'Publish Event' : 'Submit Proposal'}
+              <Send className="w-4 h-4" />
+              {submitting ? 'Publishing...' : isAdmin ? 'Publish to Catalog' : 'Submit Event Proposal'}
             </button>
           </div>
         </form>
@@ -310,4 +302,3 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
     </div>
   );
 };
-

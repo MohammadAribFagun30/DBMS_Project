@@ -9,7 +9,9 @@
     "postinstall": "prisma generate",
     "build": "prisma generate && tsup",
     "start": "node dist/server.js",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "db:start": "start-db.bat",
+    "studio": "prisma studio --port 5555"
   },
   "keywords": [],
   "license": "ISC",

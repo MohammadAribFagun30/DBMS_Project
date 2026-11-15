@@ -48,10 +48,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   const isApproved = event.status === 'APPROVED';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="relative bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-white">
         {/* Header gradient banner */}
-        <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-purple-600 p-6 sm:p-8 text-white relative">
+        <div className="bg-gradient-to-r from-indigo-900 via-indigo-950 to-purple-950 p-6 sm:p-8 text-white relative border-b border-indigo-900/50">
           <button
             onClick={onClose}
             className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -65,7 +65,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           </div>
 
           <h2 className="text-xl sm:text-2xl font-extrabold leading-snug">{event.title}</h2>
-          <p className="text-indigo-100 text-sm font-medium mt-1">
+          <p className="text-indigo-300 text-sm font-medium mt-1">
             Organized by <span className="font-bold text-white">{event.club?.clubName}</span>
           </p>
         </div>
@@ -73,20 +73,20 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         {/* Content body */}
         <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Key details bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs sm:text-sm text-slate-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-950/70 p-4 rounded-2xl border border-slate-800 text-xs sm:text-sm text-slate-300">
             <div className="flex items-center gap-2.5">
-              <Calendar className="w-5 h-5 text-indigo-600 shrink-0" />
+              <Calendar className="w-5 h-5 text-indigo-400 shrink-0" />
               <div>
-                <span className="block font-bold text-slate-900">{formattedDate}</span>
-                <span className="text-slate-500 text-xs">{formattedTime}</span>
+                <span className="block font-bold text-white">{formattedDate}</span>
+                <span className="text-slate-400 text-xs">{formattedTime}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <MapPin className="w-5 h-5 text-indigo-600 shrink-0" />
+              <MapPin className="w-5 h-5 text-indigo-400 shrink-0" />
               <div>
-                <span className="block font-bold text-slate-900">{event.venue?.venueName || 'Campus Venue'}</span>
-                <span className="text-slate-500 text-xs">{event.venue?.location || 'Main Campus'}</span>
+                <span className="block font-bold text-white">{event.venue?.venueName || 'Campus Venue'}</span>
+                <span className="text-slate-400 text-xs">{event.venue?.location || 'Main Campus'}</span>
               </div>
             </div>
           </div>
@@ -94,32 +94,32 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           {/* Description */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">About This Event</h4>
-            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+            <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
               {event.description || 'Join this exciting club event to connect with peers, enhance your skills, and participate in campus activities.'}
             </p>
           </div>
 
           {/* Workshop Details if available */}
           {event.workshop && (
-            <div className="p-4 bg-indigo-50/70 rounded-2xl border border-indigo-100 space-y-3">
-              <div className="flex items-center gap-2 text-indigo-900 font-bold text-sm">
-                <Mic className="w-4 h-4 text-indigo-600" />
+            <div className="p-4 bg-indigo-950/40 rounded-2xl border border-indigo-800/40 space-y-3">
+              <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
+                <Mic className="w-4 h-4 text-indigo-400" />
                 Featured Speaker & Workshop Syllabus
               </div>
 
               <div className="text-xs space-y-1.5">
-                <p className="text-slate-800">
-                  <span className="font-bold text-indigo-950">Speaker: </span>
+                <p className="text-slate-200">
+                  <span className="font-bold text-indigo-300">Speaker: </span>
                   {event.workshop.speakerName}
                 </p>
                 {event.workshop.speakerBio && (
-                  <p className="text-slate-600">
-                    <span className="font-semibold text-slate-700">Bio: </span>
+                  <p className="text-slate-400">
+                    <span className="font-semibold text-slate-300">Bio: </span>
                     {event.workshop.speakerBio}
                   </p>
                 )}
                 {event.workshop.prerequisites && (
-                  <p className="text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200 mt-2">
+                  <p className="text-amber-300 bg-amber-950/60 p-2.5 rounded-xl border border-amber-800/60 mt-2">
                     <span className="font-bold">Prerequisites: </span>
                     {event.workshop.prerequisites}
                   </p>
@@ -128,86 +128,52 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             </div>
           )}
 
-          {/* Sponsors Ledger preview if present */}
-          {event.sponsors && event.sponsors.length > 0 && (
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">
-                Corporate Sponsors & Partners
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {event.sponsors.map((s) => (
-                  <div key={s.id} className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-900">{s.sponsor?.companyName || 'Sponsor'}</p>
-                      <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider">
-                        {s.sponsorshipTier} Sponsor
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                      ${Number(s.amountFunded).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+          {/* Venue & Capacity specs */}
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-950/70 rounded-2xl border border-slate-800 text-xs">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-400">Registered:</span>
+              <strong className="text-white">{event._count?.registrations ?? 0} attendees</strong>
+            </div>
+
+            {event.venue?.capacity && (
+              <div className="text-slate-400">
+                Venue Seating: <strong className="text-white">{event.venue.capacity} seats</strong>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Registration Stats & Feedback */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs text-slate-500">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-slate-400" />
-                <strong className="text-slate-800">{event._count?.registrations ?? 0}</strong> students registered
-              </span>
-              {event.averageRating && (
-                <span className="flex items-center gap-1 text-amber-600 font-bold">
-                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                  {event.averageRating} / 5.0 rating
-                </span>
-              )}
-            </div>
-
-            <span className="text-[11px] text-slate-400">ID: #{event.id}</span>
+            {event.averageRating && (
+              <div className="flex items-center gap-1 text-amber-400 font-bold bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60">
+                <Star className="w-3.5 h-3.5 fill-amber-400" />
+                <span>{event.averageRating} average student rating</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Footer actions */}
-        <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+        {/* Modal footer actions */}
+        <div className="p-5 sm:p-6 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-xl"
+            className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-bold transition-colors"
           >
             Close
           </button>
 
-          {isApproved && !isCompleted ? (
+          {isApproved && !isCompleted && (
             <button
               onClick={() => {
                 onRegister(event);
                 onClose();
               }}
-              disabled={isRegistered}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all ${
-                isRegistered
-                  ? 'bg-emerald-600 text-white cursor-default'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
-              }`}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2 hover:scale-105"
             >
               <Ticket className="w-4 h-4" />
-              {isRegistered ? 'You have registered (Pass Available)' : 'Register & Get Digital Pass'}
+              Get Digital Entry Pass
             </button>
-          ) : isCompleted ? (
-            <div className="text-xs font-semibold text-slate-500 bg-slate-200 px-3 py-1.5 rounded-xl">
-              This event has completed
-            </div>
-          ) : (
-            <div className="text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
-              Pending Admin Approval
-            </div>
           )}
         </div>
       </div>
     </div>
   );
 };
-

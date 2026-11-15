@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
   const toast = useToast();
 
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
@@ -74,37 +74,47 @@ export const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto relative z-10 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-            University Club & Workshop Platform 2026
+            International Islamic University Chittagong • Club & Workshop Platform
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-4xl mx-auto leading-tight sm:leading-none">
-            Empowering Campus Life, <br />
+            Empowering IIUC Campus Life, <br />
             <span className="bg-gradient-to-r from-indigo-300 via-purple-200 to-pink-300 bg-clip-text text-transparent">
               One Club Event at a Time
             </span>
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Discover technical workshops, hackathons, and guest seminars. Register for instant digital passes,
+            Discover technical workshops, hackathons, and seminars organized by IIUC clubs. Register for instant digital passes,
             earn verified credentials, and track your club's annual 3-factor ranking.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
             <Link
               to="/events"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-xl shadow-blue-600/30 transition-all hover:scale-105"
             >
               <Compass className="w-4 h-4" />
               Explore All Events
             </Link>
 
-            <button
-              onClick={() => setProposeModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 backdrop-blur-md transition-all hover:scale-105"
-            >
-              <PlusCircle className="w-4 h-4 text-indigo-300" />
-              Propose New Event
-            </button>
+            {isAdmin ? (
+              <button
+                onClick={() => setProposeModalOpen(true)}
+                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-xl shadow-sky-600/30 transition-all hover:scale-105"
+              >
+                <PlusCircle className="w-4 h-4 text-sky-200" />
+                Create New Event
+              </button>
+            ) : (
+              <Link
+                to="/clubs"
+                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-bold text-sm border border-amber-400/30 backdrop-blur-md transition-all hover:scale-105"
+              >
+                <Trophy className="w-4 h-4 text-amber-400" />
+                View Club Standings
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -112,45 +122,45 @@ export const HomePage: React.FC = () => {
       {/* KPI Stats Counter Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl shadow-slate-950/50 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
               <Compass className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-slate-900">{stats?.totalEvents ?? 42}</p>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Campus Events</span>
+              <p className="text-2xl font-extrabold text-white">{stats?.totalEvents ?? 42}</p>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Campus Events</span>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl shadow-slate-950/50 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/15 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-slate-900">{stats?.totalRegistrations ?? 1240}</p>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Event Passes</span>
+              <p className="text-2xl font-extrabold text-white">{stats?.totalRegistrations ?? 1240}</p>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Event Passes</span>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl shadow-slate-950/50 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
               <DollarSign className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-slate-900">
+              <p className="text-2xl font-extrabold text-white">
                 ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 325000).toLocaleString()}
               </p>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sponsorship Ledger</span>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sponsorship Ledger</span>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl shadow-slate-950/50 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
               <Award className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-slate-900">{stats?.totalCertificates ?? 890}</p>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Verified Certs</span>
+              <p className="text-2xl font-extrabold text-white">{stats?.totalCertificates ?? 890}</p>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Verified Certs</span>
             </div>
           </div>
         </div>
@@ -160,16 +170,16 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
               <Calendar className="w-4 h-4" />
               Live & Upcoming
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Featured Campus Events</h2>
-            <p className="text-slate-500 text-sm mt-1">Register today and receive your digital QR entry pass.</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Featured Campus Events</h2>
+            <p className="text-slate-400 text-sm mt-1">Register today and receive your digital QR entry pass.</p>
           </div>
           <Link
             to="/events"
-            className="inline-flex items-center gap-1 text-sm font-bold text-indigo-600 hover:text-indigo-800"
+            className="inline-flex items-center gap-1 text-sm font-bold text-indigo-400 hover:text-indigo-300"
           >
             View all events <ChevronRight className="w-4 h-4" />
           </Link>
@@ -194,18 +204,18 @@ export const HomePage: React.FC = () => {
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold mb-2">
                 <Trophy className="w-3.5 h-3.5" />
-                Annual 3-Factor Club Leaderboard (2026)
+                IIUC Annual 3-Factor Club Leaderboard (2026)
               </div>
-              <h2 className="text-2xl sm:text-4xl font-extrabold">Top Performing Campus Clubs</h2>
+              <h2 className="text-2xl sm:text-4xl font-extrabold">Top Performing IIUC Clubs</h2>
               <p className="text-slate-300 text-xs sm:text-sm max-w-xl mt-2 leading-relaxed">
-                Rankings calculated automatically using the university algorithm:
+                Rankings calculated automatically using the official IIUC algorithm:
                 <span className="font-semibold text-indigo-200"> 35% Events + 35% Sponsorship + 30% Student Feedback</span>.
               </p>
             </div>
 
             <Link
               to="/clubs"
-              className="px-5 py-2.5 rounded-xl bg-white text-indigo-950 hover:bg-slate-100 font-bold text-xs sm:text-sm shrink-0 transition-colors shadow-md"
+              className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shrink-0 transition-all shadow-lg shadow-amber-400/25 hover:scale-105"
             >
               View Full Standings
             </Link>
@@ -270,51 +280,51 @@ export const HomePage: React.FC = () => {
       {/* How it Works / 4-Step Process */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-widest text-indigo-600">
+          <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">
             Platform Workflow
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
             How The Club Management System Operates
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 font-extrabold text-lg flex items-center justify-center mx-auto">
+          <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 text-center space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 font-extrabold text-lg flex items-center justify-center mx-auto">
               1
             </div>
-            <h3 className="font-bold text-base text-slate-900">Propose & Approve</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Students and clubs propose events. Admins review and approve them into the official catalog.
+            <h3 className="font-bold text-base text-white">Publish & Organize</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Official university clubs and campus authorities publish and schedule verified events.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 font-extrabold text-lg flex items-center justify-center mx-auto">
+          <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 text-center space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/20 text-purple-400 font-extrabold text-lg flex items-center justify-center mx-auto">
               2
             </div>
-            <h3 className="font-bold text-base text-slate-900">Register & Pass</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Students register with one click to receive their personalized digital pass (<code className="text-indigo-600 font-bold">REG-ID</code>).
+            <h3 className="font-bold text-base text-white">Register & Pass</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Students register with one click to receive their personalized digital pass (<code className="text-indigo-400 font-bold">REG-ID</code>).
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 font-extrabold text-lg flex items-center justify-center mx-auto">
+          <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 text-center space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 font-extrabold text-lg flex items-center justify-center mx-auto">
               3
             </div>
-            <h3 className="font-bold text-base text-slate-900">Attend & Certify</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-bold text-base text-white">Attend & Certify</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
               Attendance is marked at the venue desk, unlocking verifiable digital certificates.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 font-extrabold text-lg flex items-center justify-center mx-auto">
+          <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 text-center space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/20 text-amber-400 font-extrabold text-lg flex items-center justify-center mx-auto">
               4
             </div>
-            <h3 className="font-bold text-base text-slate-900">Anonymous Feedback</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-bold text-base text-white">Anonymous Feedback</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
               Attendees submit 100% anonymous ratings, which feed directly into the annual club rankings.
             </p>
           </div>

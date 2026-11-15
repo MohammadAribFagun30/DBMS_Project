@@ -8,25 +8,25 @@ export const mockDepartments: Department[] = [
 ];
 
 export const mockVenues: Venue[] = [
-  { id: 1, venueName: "Main Auditorium", location: "Academic Building A, Ground Floor", capacity: 500 },
-  { id: 2, venueName: "CSE Lab 3", location: "Academic Building B, 4th Floor", capacity: 60 },
-  { id: 3, venueName: "Seminar Hall 2", location: "Central Library, 2nd Floor", capacity: 120 },
-  { id: 4, venueName: "Open Air Amphitheatre", location: "Campus Green", capacity: 1000 },
+  { id: 1, venueName: "IIUC Central Auditorium", location: "Auditorium Complex, Kumira Campus", capacity: 1500 },
+  { id: 2, venueName: "CSE Software Lab 3", location: "Academic Building 4, 3rd Floor", capacity: 70 },
+  { id: 3, venueName: "Central Library Seminar Hall", location: "Central Library Building, 2nd Floor", capacity: 150 },
+  { id: 4, venueName: "IIUC Amphitheatre", location: "Campus Green Ground, Kumira", capacity: 2000 },
 ];
 
 export const mockClubs: Club[] = [
   {
     id: 1,
-    clubName: "CSE Programming Club",
-    description: "Hub for competitive programming, algorithm workshops, hackathons, and software engineering talks.",
-    establishedYear: 2015,
+    clubName: "IIUC Computer Club (IIUCCC)",
+    description: "Hub for competitive programming, algorithm workshops, hackathons, and software engineering talks at IIUC.",
+    establishedYear: 2012,
     departmentId: 1,
     department: { id: 1, departmentName: "Computer Science & Engineering" },
     _count: { events: 14 }
   },
   {
     id: 2,
-    clubName: "Robotics & Automation Club",
+    clubName: "IIUC Robotics & Automation Club",
     description: "Designing autonomous rovers, IoT devices, drone prototyping, and national robotics competitions.",
     establishedYear: 2018,
     departmentId: 2,
@@ -35,7 +35,7 @@ export const mockClubs: Club[] = [
   },
   {
     id: 3,
-    clubName: "AI & Data Science Society",
+    clubName: "IIUC AI & Data Science Society",
     description: "Deep learning masterclasses, generative AI hackathons, research reading groups, and industry collaborations.",
     establishedYear: 2021,
     departmentId: 1,
@@ -44,12 +44,21 @@ export const mockClubs: Club[] = [
   },
   {
     id: 4,
-    clubName: "Entrepreneurship & Leadership Club",
+    clubName: "IIUC Business & Leadership Forum",
     description: "Fostering startup founders, angel pitch nights, leadership symposiums, and venture building workshops.",
     establishedYear: 2016,
     departmentId: 3,
     department: { id: 3, departmentName: "Business Administration" },
     _count: { events: 8 }
+  },
+  {
+    id: 5,
+    clubName: "IIUC Telecommunication & Networking Club",
+    description: "Network architecture, Cisco routing, cybersecurity red teaming, and telecommunication systems.",
+    establishedYear: 2019,
+    departmentId: 2,
+    department: { id: 2, departmentName: "Electrical & Electronic Engineering" },
+    _count: { events: 6 }
   }
 ];
 
@@ -192,6 +201,68 @@ export const mockEvents: EventItem[] = [
     sponsors: [
       { id: 4, eventId: 6, sponsorId: 1, amountFunded: "35000", sponsorshipTier: "TITLE", sponsor: mockSponsors[0] }
     ]
+  },
+  {
+    id: 7,
+    clubId: 1,
+    venueId: 2,
+    title: "Competitive Programming Bootcamp: Dynamic Programming Masterclass",
+    description: "Intensive 4-hour CP bootcamp focusing on advanced DP on trees, bitmasking, and digit DP for ICPC aspirants.",
+    eventType: "WORKSHOP",
+    startTime: "2026-12-02T15:00:00.000Z",
+    endTime: "2026-12-02T19:00:00.000Z",
+    status: "PENDING",
+    createdById: 1,
+    createdAt: "2026-11-14T10:00:00.000Z",
+    club: mockClubs[0],
+    venue: mockVenues[1],
+    workshop: {
+      id: 4,
+      eventId: 7,
+      speakerName: "Tanvir Hasan",
+      speakerBio: "ICPC World Finalist 2024, Candidate Master on Codeforces.",
+      prerequisites: "Proficiency in C++ STL and basic recursion."
+    },
+    _count: { registrations: 0, feedbacks: 0 }
+  },
+  {
+    id: 8,
+    clubId: 2,
+    venueId: 4,
+    title: "IIUC RoboWars & Drone Racing Championship 2026",
+    description: "Inter-university combat robotics (15kg & 30kg category) and high-speed FPV drone obstacle racing competition across Kumira campus green.",
+    eventType: "COMPETITION",
+    startTime: "2026-12-15T09:00:00.000Z",
+    endTime: "2026-12-15T18:00:00.000Z",
+    status: "PENDING",
+    createdById: 1,
+    createdAt: "2026-11-14T12:00:00.000Z",
+    club: mockClubs[1],
+    venue: mockVenues[3],
+    _count: { registrations: 0, feedbacks: 0 }
+  },
+  {
+    id: 9,
+    clubId: 5,
+    venueId: 2,
+    title: "Cybersecurity Red Teaming & Cloud Infrastructure Defense",
+    description: "Defensive and offensive security principles: practical penetration testing, network packet analysis with Wireshark, and AWS security group hardening.",
+    eventType: "WORKSHOP",
+    startTime: "2026-12-08T14:00:00.000Z",
+    endTime: "2026-12-08T18:00:00.000Z",
+    status: "APPROVED",
+    createdById: 1,
+    createdAt: "2026-11-14T14:00:00.000Z",
+    club: mockClubs[4],
+    venue: mockVenues[1],
+    workshop: {
+      id: 5,
+      eventId: 9,
+      speakerName: "Ahsan Habib, CEH",
+      speakerBio: "Lead Security Architect at CloudShield Technologies.",
+      prerequisites: "Basic understanding of Linux commands and TCP/IP networking."
+    },
+    _count: { registrations: 34, feedbacks: 0 }
   }
 ];
 
@@ -205,7 +276,7 @@ export const mockRankings: ClubRanking[] = [
     feedbackScore: "96.00",
     finalScore: "97.22",
     rankPosition: 1,
-    clubName: "CSE Programming Club",
+    clubName: "IIUC Computer Club (IIUCCC)",
     club: mockClubs[0],
     metrics: { completedEvents: 14, totalSponsorship: 120000, averageRating: 4.8 }
   },
@@ -218,7 +289,7 @@ export const mockRankings: ClubRanking[] = [
     feedbackScore: "92.00",
     finalScore: "88.85",
     rankPosition: 2,
-    clubName: "AI & Data Science Society",
+    clubName: "IIUC AI & Data Science Society",
     club: mockClubs[2],
     metrics: { completedEvents: 11, totalSponsorship: 85000, averageRating: 4.6 }
   },
@@ -231,7 +302,7 @@ export const mockRankings: ClubRanking[] = [
     feedbackScore: "88.00",
     finalScore: "77.15",
     rankPosition: 3,
-    clubName: "Robotics & Automation Club",
+    clubName: "IIUC Robotics & Automation Club",
     club: mockClubs[1],
     metrics: { completedEvents: 9, totalSponsorship: 55000, averageRating: 4.4 }
   },
@@ -244,7 +315,7 @@ export const mockRankings: ClubRanking[] = [
     feedbackScore: "82.00",
     finalScore: "75.35",
     rankPosition: 4,
-    clubName: "Entrepreneurship & Leadership Club",
+    clubName: "IIUC Business & Leadership Forum",
     club: mockClubs[3],
     metrics: { completedEvents: 8, totalSponsorship: 65000, averageRating: 4.1 }
   }
