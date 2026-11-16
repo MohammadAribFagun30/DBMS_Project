@@ -72,11 +72,6 @@ export const HomePage: React.FC = () => {
         <div className="absolute bottom-0 right-10 w-[400px] h-[250px] bg-purple-500/15 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-            International Islamic University Chittagong • Club & Workshop Platform
-          </div>
-
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-4xl mx-auto leading-tight sm:leading-none">
             Empowering IIUC Campus Life, <br />
             <span className="bg-gradient-to-r from-indigo-300 via-purple-200 to-pink-300 bg-clip-text text-transparent">

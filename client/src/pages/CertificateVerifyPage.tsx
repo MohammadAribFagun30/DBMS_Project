@@ -252,10 +252,12 @@ export const CertificateVerifyPage: React.FC = () => {
         </div>
       </div>
 
-      <CertificateModal
-        certificate={result}
-        onClose={() => setModalOpen(false)}
-      />
+      {modalOpen && (
+        <CertificateModal
+          certificate={result}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -17,10 +17,6 @@ export const Footer: React.FC = () => {
             <p className="text-slate-400 text-xs sm:text-sm max-w-sm leading-relaxed mb-4">
               International Islamic University Chittagong (IIUC) centralized platform for club activities, workshops, registrations, digital event passes, verified certificates, and annual 3-factor club rankings.
             </p>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-              PostgreSQL 3NF Schema • Express 5 • Prisma 7 • React 18
-            </div>
           </div>
 
           <div>

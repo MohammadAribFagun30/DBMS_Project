@@ -172,10 +172,6 @@ export const AdminDashboardPage: React.FC = () => {
       {/* Admin Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <ShieldCheck className="w-4 h-4" />
-            International Islamic University Chittagong • System Operations
-          </div>
           <h1 className="text-3xl font-extrabold text-white">Administrator Console</h1>
           <p className="text-slate-400 text-sm mt-1">
             Logged in as <strong className="text-slate-200">{user?.fullName || 'System Admin'}</strong> ({user?.email})
