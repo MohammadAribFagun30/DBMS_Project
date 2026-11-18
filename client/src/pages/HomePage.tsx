@@ -186,7 +186,7 @@ export const HomePage: React.FC = () => {
               key={event.id}
               event={event}
               onSelect={setSelectedEvent}
-              onRegister={handleRegister}
+              onRegister={isAdmin ? undefined : handleRegister}
             />
           ))}
         </div>
@@ -330,7 +330,7 @@ export const HomePage: React.FC = () => {
       <EventDetailModal
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
-        onRegister={handleRegister}
+        onRegister={isAdmin ? undefined : handleRegister}
       />
 
       {proposeModalOpen && (

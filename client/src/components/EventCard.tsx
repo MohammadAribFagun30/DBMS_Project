@@ -2,6 +2,7 @@ import React from 'react';
 import { EventItem } from '../types';
 import { StatusBadge, TypeBadge } from './Badge';
 import { Calendar, MapPin, Users, Mic, Star, ArrowRight, Award } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface EventCardProps {
   event: EventItem;
@@ -16,6 +17,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   onRegister,
   isRegistered = false,
 }) => {
+  const { isAdmin } = useAuth();
   const startDate = new Date(event.startTime);
   const formattedDate = startDate.toLocaleDateString('en-US', {
     month: 'short',
@@ -96,7 +98,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         )}
 
         <div className="flex items-center gap-2">
-          {onRegister && !isCompleted && event.status === 'APPROVED' && (
+          {!isAdmin && onRegister && !isCompleted && event.status === 'APPROVED' && (
             <button
               onClick={() => onRegister(event)}
               className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all hover:scale-105"
@@ -107,10 +109,11 @@ export const EventCard: React.FC<EventCardProps> = ({
 
           <button
             onClick={() => onSelect(event)}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 rounded-xl transition-all"
             title="View Details"
           >
-            <ArrowRight className="w-4 h-4" />
+            <span>Details</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

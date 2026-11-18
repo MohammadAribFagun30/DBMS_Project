@@ -1,6 +1,7 @@
 import React from 'react';
 import { EventItem } from '../types';
 import { StatusBadge, TypeBadge } from './Badge';
+import { useAuth } from '../context/AuthContext';
 import {
   X,
   Calendar,
@@ -20,7 +21,7 @@ import {
 interface EventDetailModalProps {
   event: EventItem | null;
   onClose: () => void;
-  onRegister: (event: EventItem) => void;
+  onRegister?: (event: EventItem) => void;
   isRegistered?: boolean;
 }
 
@@ -30,6 +31,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   onRegister,
   isRegistered = false,
 }) => {
+  const { isAdmin } = useAuth();
   if (!event) return null;
 
   const startDate = new Date(event.startTime);
@@ -160,7 +162,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             Close
           </button>
 
-          {isApproved && !isCompleted && (
+          {!isAdmin && isApproved && !isCompleted && onRegister && (
             <button
               onClick={() => {
                 onRegister(event);

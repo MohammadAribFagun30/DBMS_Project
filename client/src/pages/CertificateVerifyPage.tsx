@@ -56,11 +56,6 @@ export const CertificateVerifyPage: React.FC = () => {
       <div className="relative z-10 max-w-4xl mx-auto space-y-10">
         {/* Institutional Authority Badge & Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/25 text-indigo-300 text-xs font-semibold backdrop-blur-md shadow-inner">
-            <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            <span>International Islamic University Chittagong • DSA Credential Registry</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
             Verify IIUC Participation{' '}
             <span className="bg-gradient-to-r from-indigo-300 via-purple-200 to-pink-300 bg-clip-text text-transparent">
