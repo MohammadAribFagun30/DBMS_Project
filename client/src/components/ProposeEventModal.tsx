@@ -3,7 +3,7 @@ import { Club, Venue } from '../types';
 import { apiClubs, apiVenues, apiEvents } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { X, Calendar, Clock, MapPin, Mic, Send, Sparkles } from 'lucide-react';
+import { X, Mic, Send, Sparkles } from 'lucide-react';
 
 interface ProposeEventModalProps {
   onClose: () => void;
@@ -91,7 +91,7 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="relative bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-white">
+      <div className="relative bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-slate-900 dark:text-white transition-colors">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-900 via-indigo-950 to-purple-950 p-6 sm:p-8 text-white relative border-b border-indigo-900/50">
           <button
@@ -116,14 +116,14 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 max-h-[72vh] overflow-y-auto">
           {/* Organizing Club */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
               Host Club *
             </label>
             <select
               required
               value={form.clubId}
               onChange={(e) => setForm({ ...form, clubId: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-800 dark:text-slate-200 transition-colors"
             >
               <option value="">Select Host Club...</option>
               {clubs.map((c) => (
@@ -136,7 +136,7 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
 
           {/* Event Title */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
               Event Title *
             </label>
             <input
@@ -145,14 +145,14 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
               placeholder="e.g. Modern Cloud Native Architecture with Kubernetes"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
             />
           </div>
 
           {/* Type & Venue */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                 Event Category *
               </label>
               <select
@@ -161,7 +161,7 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
                   setForm({ ...form, eventType: e.target.value });
                   setIsWorkshop(e.target.value === 'WORKSHOP');
                 }}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-200"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-800 dark:text-slate-200 transition-colors"
               >
                 <option value="WORKSHOP">Technical Workshop</option>
                 <option value="HACKATHON">Hackathon / Sprint</option>
@@ -172,13 +172,13 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                 Campus Venue
               </label>
               <select
                 value={form.venueId}
                 onChange={(e) => setForm({ ...form, venueId: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-200"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-800 dark:text-slate-200 transition-colors"
               >
                 <option value="">Select Venue...</option>
                 {venues.map((v) => (
@@ -191,9 +191,9 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
           </div>
 
           {/* Date & Time */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="space-y-3">
-              <span className="text-[11px] font-bold text-indigo-400 block uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 block uppercase tracking-wider">
                 Start Schedule *
               </span>
               <input
@@ -201,18 +201,18 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
                 required
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
               />
               <input
                 type="time"
                 value={form.startTime}
                 onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
               />
             </div>
 
             <div className="space-y-3">
-              <span className="text-[11px] font-bold text-indigo-400 block uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 block uppercase tracking-wider">
                 End Schedule *
               </span>
               <input
@@ -220,20 +220,20 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
                 required
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
               />
               <input
                 type="time"
                 value={form.endTime}
                 onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
               Description & Objectives
             </label>
             <textarea
@@ -241,15 +241,15 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
               placeholder="Outline what participants will learn, required software, tools, etc."
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-3 rounded-xl bg-slate-950/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 resize-none"
+              className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 resize-none transition-colors"
             />
           </div>
 
           {/* Workshop Details toggle */}
           {isWorkshop && (
-            <div className="p-4 bg-indigo-950/40 rounded-2xl border border-indigo-800/40 space-y-4">
-              <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider block flex items-center gap-1.5">
-                <Mic className="w-4 h-4" /> Guest Speaker / Instructor Profile
+            <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-800/40 space-y-4">
+              <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider block flex items-center gap-1.5">
+                <Mic className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Guest Speaker / Instructor Profile
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -258,14 +258,14 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
                   placeholder="Speaker Name"
                   value={form.speakerName}
                   onChange={(e) => setForm({ ...form, speakerName: e.target.value })}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
                 <input
                   type="text"
                   placeholder="Speaker Title / Bio (e.g. Senior SRE @ Google)"
                   value={form.speakerBio}
                   onChange={(e) => setForm({ ...form, speakerBio: e.target.value })}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -274,17 +274,17 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
                 placeholder="Prerequisites (e.g. Basic Docker knowledge, Laptop required)"
                 value={form.prerequisites}
                 onChange={(e) => setForm({ ...form, prerequisites: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
               />
             </div>
           )}
 
           {/* Actions */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 hover:text-white"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>

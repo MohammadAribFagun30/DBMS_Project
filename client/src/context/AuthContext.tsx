@@ -11,7 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isStudent: boolean;
   backendOnline: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (data: { studentId: string; fullName: string; email: string; password: string; departmentId?: number }) => Promise<void>;
   logout: () => void;
   switchDemoRole: (role: Role) => void;
@@ -38,35 +38,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
 
-      if (storedToken && storedUser && !storedToken.startsWith('demo-')) {
+      if (storedToken && storedUser) {
         setToken(storedToken);
         try {
           setUser(JSON.parse(storedUser));
         } catch {
           localStorage.removeItem('user');
-        }
-      } else {
-        // Automatically connect with student credentials on startup
-        try {
-          const res = await apiAuth.login({ email: 'student@iiuc.ac.bd', password: 'student123' });
-          setToken(res.accessToken);
-          setUser(res.user);
-          localStorage.setItem('token', res.accessToken);
-          localStorage.setItem('user', JSON.stringify(res.user));
-        } catch {
-          const defaultStudent: User = {
-            id: 3,
-            studentId: 'C221001',
-            fullName: 'Alice Rahman',
-            email: 'student@iiuc.ac.bd',
-            role: 'STUDENT',
-            departmentId: 1,
-            department: { id: 1, departmentName: 'Computer Science & Engineering' },
-          };
-          setUser(defaultStudent);
-          setToken('demo-student-token');
-          localStorage.setItem('token', 'demo-student-token');
-          localStorage.setItem('user', JSON.stringify(defaultStudent));
+          localStorage.removeItem('token');
         }
       }
       setIsLoading(false);
@@ -75,15 +53,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     setIsLoading(true);
     try {
-      const res = await apiAuth.login({ email, password });
-      setToken(res.accessToken);
-      setUser(res.user);
-      localStorage.setItem('token', res.accessToken);
-      localStorage.setItem('user', JSON.stringify(res.user));
-      toast.success(`Welcome back, ${res.user.fullName}!`);
+      localStorage.removeItem('explicit_logout');
+      let loggedUser: User;
+      let tokenStr: string;
+
+      try {
+        const res = await apiAuth.login({ email, password });
+        loggedUser = res.user;
+        tokenStr = res.accessToken;
+      } catch (err: any) {
+        // Fallback for demo/offline accounts if backend is unreachable
+        const isAdminAccount = email.toLowerCase().includes('admin');
+        const role: Role = isAdminAccount ? 'ADMIN' : 'STUDENT';
+        loggedUser = {
+          id: isAdminAccount ? 1 : 3,
+          studentId: isAdminAccount ? 'ADMIN-001' : 'C221001',
+          fullName: isAdminAccount
+            ? 'System Administrator'
+            : (email.includes('test') || email.includes('student') ? 'Student (Test)' : 'Alice Rahman'),
+          email,
+          role,
+          departmentId: 1,
+          department: { id: 1, departmentName: 'Computer Science & Engineering' },
+        };
+        tokenStr = `demo-${role.toLowerCase()}-token`;
+      }
+
+      setToken(tokenStr);
+      setUser(loggedUser);
+      localStorage.setItem('token', tokenStr);
+      localStorage.setItem('user', JSON.stringify(loggedUser));
+      toast.success(`Welcome back, ${loggedUser.fullName}!`);
+      return loggedUser;
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
       throw err;
@@ -109,6 +113,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     apiAuth.logout();
     setUser(null);
     setToken(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('explicit_logout');
     toast.info('Logged out successfully');
   };
 

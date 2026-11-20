@@ -37,13 +37,13 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({ certificate,
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-white cursor-default"
+        className="relative bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-slate-900 dark:text-white cursor-default transition-colors"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close modal"
-          className="absolute top-4 right-4 z-30 p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors shadow-md"
+          className="absolute top-4 right-4 z-30 p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors shadow-md"
         >
           <X className="w-4 h-4" />
         </button>
@@ -113,11 +113,11 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({ certificate,
         </div>
 
         {/* Modal Action Buttons */}
-        <div className="p-4 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between gap-3">
+        <div className="p-4 bg-slate-50 dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition-colors"
+            className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors"
           >
             Close
           </button>

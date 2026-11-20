@@ -8,6 +8,7 @@ const main = async () => {
   // 1. Password Hashes
   const adminPasswordHash = await bcrypt.hash("admin123", 10);
   const studentPasswordHash = await bcrypt.hash("student123", 10);
+  const testPasswordHash = await bcrypt.hash("12345678", 10);
 
   // 2. Departments
   const deptCse = await prisma.department.upsert({
@@ -48,6 +49,19 @@ const main = async () => {
     },
   });
 
+  await prisma.user.upsert({
+    where: { email: "admin@test.com" },
+    update: { passwordHash: testPasswordHash },
+    create: {
+      studentId: "ADMIN-002",
+      fullName: "System Admin (Test)",
+      email: "admin@test.com",
+      passwordHash: testPasswordHash,
+      role: Role.ADMIN,
+      departmentId: deptCse.id,
+    },
+  });
+
   const studentUser = await prisma.user.upsert({
     where: { email: "student@iiuc.ac.bd" },
     update: {},
@@ -56,6 +70,32 @@ const main = async () => {
       fullName: "Alice Rahman",
       email: "student@iiuc.ac.bd",
       passwordHash: studentPasswordHash,
+      role: Role.STUDENT,
+      departmentId: deptCse.id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "user@test.com" },
+    update: { passwordHash: testPasswordHash },
+    create: {
+      studentId: "U221099",
+      fullName: "Standard User (Test)",
+      email: "user@test.com",
+      passwordHash: testPasswordHash,
+      role: Role.STUDENT,
+      departmentId: deptCse.id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "student@test.com" },
+    update: { passwordHash: testPasswordHash },
+    create: {
+      studentId: "S221099",
+      fullName: "Student (Test)",
+      email: "student@test.com",
+      passwordHash: testPasswordHash,
       role: Role.STUDENT,
       departmentId: deptCse.id,
     },
