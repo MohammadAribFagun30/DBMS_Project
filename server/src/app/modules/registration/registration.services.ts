@@ -4,14 +4,36 @@ import { EventStatus, RegistrationStatus, Role } from "../../../generated/prisma
 import { AppError } from "../../utils/appError";
 import { createAuditLog, notifyUser } from "../../utils/logger";
 import { userPublicSelect } from "../../utils/userSelect";
+import { sendRegistrationConfirmedEmail } from "../../utils/email";
 
 type CurrentUser = { id: number; role: Role };
 
-const eventInclude = { event: { include: { club: { select: { id: true, clubName: true } }, venue: true } } };
+const eventInclude = {
+  event: {
+    include: {
+      club: { select: { id: true, clubName: true } },
+      venue: true,
+    },
+  },
+  user: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      studentId: true,
+    },
+  },
+};
 
 // Student registers for an approved, not-yet-finished event. The registration id acts as the event pass.
 const register = async (userId: number, eventId: number) => {
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    include: {
+      club: { select: { id: true, clubName: true } },
+      venue: true,
+    },
+  });
   if (!event) throw new AppError("Event not found", httpStatus.NOT_FOUND);
   if (event.status !== EventStatus.APPROVED) {
     throw new AppError("Registration is only open for approved events", httpStatus.BAD_REQUEST);
@@ -32,8 +54,23 @@ const register = async (userId: number, eventId: number) => {
       })
     : await prisma.registration.create({ data: { eventId, userId }, include: eventInclude });
 
+  // 1. In-app notification
   await notifyUser(userId, `Registration confirmed for "${event.title}". Your pass number is REG-${registration.id}.`);
   await createAuditLog(userId, "REGISTRATION_CONFIRMED", "registrations", registration.id);
+
+  // 2. Email notification (Resend / Nodemailer)
+  if (registration.user?.email) {
+    sendRegistrationConfirmedEmail(registration.user.email, {
+      studentName: registration.user.fullName || "Student",
+      eventTitle: event.title,
+      passNumber: `REG-${registration.id}`,
+      startTime: event.startTime,
+      venueName: event.venue?.name,
+      clubName: event.club?.clubName,
+    }).catch((err) => {
+      console.error("[Email] Failed to send registration confirmation email:", err?.message || err);
+    });
+  }
 
   return { ...registration, passNumber: `REG-${registration.id}` };
 };

@@ -332,6 +332,16 @@ export const apiCertificates = {
     } catch {
       return { count: 1 };
     }
+  },
+
+  generate: async (id: number) => {
+    try {
+      return await request<{ count: number }>(`/certificates/event/${id}`, {
+        method: 'POST',
+      });
+    } catch {
+      return { count: 1 };
+    }
   }
 };
 
@@ -463,6 +473,17 @@ export const apiSponsors = {
   },
 
   recordFunding: async (data: { eventId: number; sponsorId: number; amountFunded: number; sponsorshipTier: string }) => {
+    try {
+      return await request<any>('/event-sponsors', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch {
+      return { success: true };
+    }
+  },
+
+  linkEventSponsor: async (data: { eventId: number; sponsorId: number; amountFunded: number; sponsorshipTier: string }) => {
     try {
       return await request<any>('/event-sponsors', {
         method: 'POST',

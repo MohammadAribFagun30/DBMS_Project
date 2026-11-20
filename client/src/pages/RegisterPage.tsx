@@ -41,94 +41,85 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 overflow-hidden bg-slate-50 dark:bg-[#08090e] transition-colors duration-200">
-      {/* Ambient background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 bg-white dark:bg-[#12131d] rounded-3xl max-w-md w-full p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/70 border border-slate-200 dark:border-slate-800/80 space-y-6 transition-colors duration-200">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 mx-auto flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
-            <UserPlus className="w-6 h-6" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('Student Sign Up')}</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+    <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center px-4 py-8 bg-[var(--bg)] text-[var(--text)]">
+      <div className="w-full max-w-[400px] bg-[var(--surface)] rounded-[6px] p-6 border border-[var(--border)] space-y-4">
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--primary)] font-semibold">
+            Student Enrollment
+          </span>
+          <h2 className="font-heading font-semibold text-xl text-[var(--text)] mt-0.5">{t('Student Sign Up')}</h2>
+          <p className="text-xs text-[var(--muted)]">
             {t('Register your International Islamic University Chittagong profile to get event passes and certificates.')}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[var(--text)] mb-1">
               {t('IIUC Student ID *')}
             </label>
             <div className="relative">
-              <Hash className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Hash className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
               <input
                 type="text"
                 required
                 placeholder="e.g. C221001 or CSE-2201"
                 value={form.studentId}
                 onChange={(e) => setForm({ ...form, studentId: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#181926] border border-slate-300 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)] font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[var(--text)] mb-1">
               {t('Full Name *')}
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <User className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
               <input
                 type="text"
                 required
                 placeholder="e.g. Alice Rahman"
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#181926] border border-slate-300 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[var(--text)] mb-1">
               {t('IIUC Institutional Email *')}
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
               <input
                 type="email"
                 required
-                placeholder="e.g. alice@iiuc.ac.bd"
+                placeholder="student@iiuc.ac.bd"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#181926] border border-slate-300 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)] font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[var(--text)] mb-1">
               {t('Academic Department')}
             </label>
             <div className="relative">
-              <Building2 className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Building2 className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
               <select
                 value={form.departmentId}
                 onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#181926] border border-slate-300 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white transition-colors shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)]"
               >
-                <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                  {t('Select Department')}...
-                </option>
-                {departments.map((d) => (
-                  <option
-                    key={d.id}
-                    value={d.id}
-                    className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                  >
-                    {d.departmentName}
+                <option value="">{t('Select Department (Optional)')}</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.departmentName}
                   </option>
                 ))}
               </select>
@@ -136,19 +127,18 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              {t('Create Password *', 'পাসওয়ার্ড *')}
+            <label className="block text-xs font-medium text-[var(--text)] mb-1">
+              {t('Password *')}
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
               <input
                 type="password"
                 required
-                minLength={6}
-                placeholder="••••••••"
+                placeholder="Min 6 characters"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#181926] border border-slate-300 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)] font-mono"
               />
             </div>
           </div>
@@ -156,18 +146,18 @@ export const RegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="btn-primary w-full text-xs py-2 mt-2 disabled:opacity-60"
           >
-            {isLoading ? t('Creating Account...', 'অ্যাকাউন্ট তৈরি হচ্ছে...') : t('Create Student Account')}
+            {isLoading ? t('Creating Account...', 'Creating Account...') : t('Create Account')}
           </button>
         </form>
 
-        <div className="text-center text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-200 dark:border-slate-800/80">
-          {t('Already have an account?')}{' '}
-          <Link to="/login" className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
-            {t('Sign in')}
+        <p className="text-center text-xs text-[var(--muted)] pt-2 border-t border-[var(--border)]">
+          {t('Already registered?')}{' '}
+          <Link to="/login" className="text-[var(--primary)] font-medium hover:underline">
+            {t('Login here')}
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

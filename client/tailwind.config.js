@@ -4,29 +4,72 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+        bg: 'var(--bg)',
+        surface: {
+          DEFAULT: 'var(--surface)',
+          alt: 'var(--surface-alt)',
+        },
+        border: 'var(--border)',
+        text: 'var(--text)',
+        muted: 'var(--muted)',
+        primary: {
+          DEFAULT: 'var(--primary)',
+          hover: 'var(--primary-hover)',
+          contrast: 'var(--primary-contrast)',
+        },
+        highlight: 'var(--highlight)',
+        status: {
+          approved: {
+            text: 'var(--status-approved-text)',
+            bg: 'var(--status-approved-bg)',
+          },
+          pending: {
+            text: 'var(--status-pending-text)',
+            bg: 'var(--status-pending-bg)',
+          },
+          rejected: {
+            text: 'var(--status-rejected-text)',
+            bg: 'var(--status-rejected-bg)',
+          },
+          attended: {
+            text: 'var(--status-attended-text)',
+            bg: 'var(--status-attended-bg)',
+          },
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Instrument Sans"', '"Hind Siliguri"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        heading: ['Fraunces', 'Georgia', 'serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
+      },
+      borderRadius: {
+        none: '0px',
+        sm: '4px',
+        DEFAULT: '6px',
+        md: '6px',
+        lg: '6px',
+        xl: '6px',
+        '2xl': '6px',
+        '3xl': '6px',
+        full: '6px', // Max 6px everywhere per guidelines
+      },
+      boxShadow: {
+        none: 'none',
+        xs: 'none',
+        sm: 'none',
+        DEFAULT: 'none',
+        md: 'none',
+        lg: 'none',
+        xl: 'none',
+        '2xl': 'none',
+        inner: 'none',
       },
     },
   },
   plugins: [],
 }
-

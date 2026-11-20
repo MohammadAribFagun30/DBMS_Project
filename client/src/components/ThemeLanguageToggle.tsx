@@ -13,54 +13,46 @@ export const ThemeLanguageToggle: React.FC<ThemeLanguageToggleProps> = ({ classN
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   return (
-    <div className={`flex items-center gap-2.5 relative ${className}`}>
-      {/* Theme Toggle Pill Switch */}
+    <div className={`flex items-center gap-2 relative ${className}`}>
+      {/* Theme Toggle Button - Lucide Sun/Moon with strokeWidth 1.5, 6px radius, 1px border */}
       <button
         type="button"
         onClick={toggleTheme}
-        aria-label="Toggle theme"
-        className="w-13 h-7 px-1 rounded-full bg-slate-200 dark:bg-[#13151b] border border-slate-300 dark:border-slate-800 flex items-center transition-all cursor-pointer relative shadow-inner"
-        style={{ width: '3.25rem', height: '1.75rem' }}
+        aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+        title={isDark ? "Light Mode" : "Dark Mode"}
+        className="w-8 h-8 rounded-[6px] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
       >
-        <span
-          className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform duration-200 shadow-sm ${
-            isDark
-              ? 'translate-x-6 bg-[#1a1b24] text-indigo-400'
-              : 'translate-x-0 bg-amber-400 text-slate-900'
-          }`}
-        >
-          {isDark ? (
-            <Moon className="w-3 h-3 text-indigo-300 fill-indigo-400/20" />
-          ) : (
-            <Sun className="w-3.5 h-3.5 text-slate-950 fill-slate-950" />
-          )}
-        </span>
+        {isDark ? (
+          <Sun className="w-4 h-4" strokeWidth={1.5} />
+        ) : (
+          <Moon className="w-4 h-4" strokeWidth={1.5} />
+        )}
       </button>
 
-      {/* Language Selector Dropdown */}
+      {/* Language Selector Dropdown - 6px radius, 1px border, no box shadow */}
       <div className="relative">
         <button
           type="button"
           onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 h-8 px-2.5 text-xs font-medium text-[var(--text)] rounded-[6px] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--border)] transition-colors cursor-pointer"
         >
-          <Globe className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <span>{language}</span>
-          <ChevronDown className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+          <Globe className="w-3.5 h-3.5 text-[var(--muted)]" strokeWidth={1.5} />
+          <span className="font-mono">{language}</span>
+          <ChevronDown className="w-3 h-3 text-[var(--muted)]" strokeWidth={1.5} />
         </button>
 
         {langDropdownOpen && (
-          <div className="absolute right-0 mt-1.5 w-32 bg-white dark:bg-[#161822] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute right-0 mt-1 w-32 bg-[var(--surface)] border border-[var(--border)] rounded-[6px] py-1 z-50">
             <button
               type="button"
               onClick={() => {
                 setLanguage('EN');
                 setLangDropdownOpen(false);
               }}
-              className="w-full px-3 py-1.5 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center justify-between cursor-pointer"
+              className="w-full px-3 py-1.5 text-xs text-left text-[var(--text)] hover:bg-[var(--surface-alt)] flex items-center justify-between cursor-pointer"
             >
               <span>English (EN)</span>
-              {language === 'EN' && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />}
+              {language === 'EN' && <Check className="w-3.5 h-3.5 text-[var(--primary)]" strokeWidth={1.5} />}
             </button>
             <button
               type="button"
@@ -68,10 +60,10 @@ export const ThemeLanguageToggle: React.FC<ThemeLanguageToggleProps> = ({ classN
                 setLanguage('BN');
                 setLangDropdownOpen(false);
               }}
-              className="w-full px-3 py-1.5 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center justify-between cursor-pointer"
+              className="w-full px-3 py-1.5 text-xs text-left text-[var(--text)] hover:bg-[var(--surface-alt)] flex items-center justify-between cursor-pointer"
             >
               <span>বাংলা (BN)</span>
-              {language === 'BN' && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />}
+              {language === 'BN' && <Check className="w-3.5 h-3.5 text-[var(--primary)]" strokeWidth={1.5} />}
             </button>
           </div>
         )}

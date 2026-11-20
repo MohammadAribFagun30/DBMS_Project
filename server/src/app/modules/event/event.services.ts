@@ -4,6 +4,7 @@ import { EventStatus, Role } from "../../../generated/prisma/enums";
 import { AppError } from "../../utils/appError";
 import { createAuditLog, notifyUser } from "../../utils/logger";
 import { userPublicSelect } from "../../utils/userSelect";
+import { sendEventApprovedEmail } from "../../utils/email";
 
 type EventQuery = {
   status?: string;
@@ -110,11 +111,33 @@ const updateStatus = async (adminId: number, id: number, status: EventStatus) =>
   const existing = await prisma.event.findUnique({ where: { id } });
   if (!existing) throw new AppError("Event not found", httpStatus.NOT_FOUND);
 
-  const event = await prisma.event.update({ where: { id }, data: { status } });
+  const event = await prisma.event.update({
+    where: { id },
+    data: { status },
+    include: {
+      club: { select: { id: true, clubName: true } },
+      venue: true,
+      createdBy: { select: { fullName: true, email: true } },
+    },
+  });
   await createAuditLog(adminId, `EVENT_${status}`, "events", id);
 
   if (event.createdById) {
+    // 1. In-app notification
     await notifyUser(event.createdById, `Your event "${event.title}" is now ${status}.`);
+
+    // 2. Email notification on approval (Resend / Nodemailer)
+    if (status === EventStatus.APPROVED && event.createdBy?.email) {
+      sendEventApprovedEmail(event.createdBy.email, {
+        organizerName: event.createdBy.fullName || "Event Organizer",
+        eventTitle: event.title,
+        startTime: event.startTime,
+        venueName: event.venue?.name,
+        clubName: event.club?.clubName,
+      }).catch((err) => {
+        console.error("[Email] Failed to send event approval email:", err?.message || err);
+      });
+    }
   }
 
   // Let registered students know if the event was cancelled.

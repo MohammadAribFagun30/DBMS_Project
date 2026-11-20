@@ -4,12 +4,37 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClubVerse — International Islamic University Chittagong (IIUC)</title>
+    <title>ClubVerse — Campus Club & Event Management</title>
+    
+    <!-- Google Fonts: Fraunces (Headings), Instrument Sans (Body/UI), IBM Plex Mono (Tabular/IDs), Hind Siliguri (Bangla) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Anti-FOUC Theme Initialization Script (Runs before first paint) -->
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('theme') || localStorage.getItem('clubverse_theme');
+          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = stored ? stored : (systemDark ? 'dark' : 'light');
+          var root = document.documentElement;
+          if (theme === 'dark') {
+            root.classList.add('dark');
+            root.classList.remove('light');
+            root.setAttribute('data-theme', 'dark');
+            root.style.colorScheme = 'dark';
+          } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+            root.setAttribute('data-theme', 'light');
+            root.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-500 selection:text-white">
+  <body class="bg-[var(--bg)] text-[var(--text)] antialiased selection:bg-[var(--primary)] selection:text-[var(--primary-contrast)]">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

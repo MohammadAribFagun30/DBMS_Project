@@ -2,26 +2,214 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* LIGHT THEME */
+  --bg: #F5F2EA;
+  --surface: #FFFFFF;
+  --surface-alt: #EFEBE0;
+  --border: #DDD7C8;
+  --text: #1C1B18;
+  --muted: #6A665B;
+  --primary: #1F4D3A;
+  --primary-hover: #173B2C;
+  --primary-contrast: #FFFFFF;
+  --highlight: #B8862F;
+
+  /* STATUS COLORS (Light) */
+  --status-approved-text: #2F6B4F;
+  --status-approved-bg: #E4EFE8;
+  --status-pending-text: #8A6414;
+  --status-pending-bg: #F4EBD3;
+  --status-rejected-text: #9B3A2D;
+  --status-rejected-bg: #F4E1DD;
+  --status-attended-text: #35567A;
+  --status-attended-bg: #E1E9F2;
+
+  color-scheme: light;
+}
+
+html.dark, [data-theme="dark"] {
+  /* DARK THEME */
+  --bg: #14130F;
+  --surface: #1D1C17;
+  --surface-alt: #26241E;
+  --border: #33312A;
+  --text: #ECE8DC;
+  --muted: #9A9585;
+  --primary: #5DA583;
+  --primary-hover: #74B898;
+  --primary-contrast: #0F1A14;
+  --highlight: #D4A24C;
+
+  /* STATUS COLORS (Dark) */
+  --status-approved-text: #7CC09E;
+  --status-approved-bg: #1C2E25;
+  --status-pending-text: #D9AE5B;
+  --status-pending-bg: #33291A;
+  --status-rejected-text: #E08A7C;
+  --status-rejected-bg: #371E1A;
+  --status-attended-text: #86A9D1;
+  --status-attended-bg: #1A2433;
+
+  color-scheme: dark;
+}
+
 @layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
   body {
-    @apply antialiased transition-colors duration-200;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: 'Instrument Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
   html.dark body {
-    @apply text-slate-100 bg-slate-950;
+    line-height: 1.65;
   }
-  html:not(.dark) body {
-    @apply text-slate-900 bg-slate-50;
+
+  /* Short 150ms smooth transition on background-color, color, border-color only */
+  *, *::before, *::after {
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
+
+  /* Headings: Fraunces (weight 600, letter-spacing -0.01em) */
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  /* Numbers, IDs, amounts, pass numbers (REG-12), dates in tables: IBM Plex Mono */
+  .font-mono, [data-mono], .mono-num, code, pre, .tabular-nums {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Native inputs, date pickers, scrollbars */
+  input, select, textarea {
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary);
+    border-color: var(--primary);
+  }
+
+  /* Scrollbars matching color scheme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+
+  /* Remove all box-shadows everywhere */
+  .shadow-xs, .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-inner {
+    box-shadow: none !important;
   }
 }
 
+/* Dense table styling */
+.dense-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dense-table th {
+  background-color: var(--surface-alt);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.dense-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.dense-table tr:hover td {
+  background-color: var(--surface-alt);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-contrast);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  background-color: var(--surface-alt);
+  border-color: var(--muted);
+}
+
+/* Print styling */
 @media print {
   body * {
     visibility: hidden;
   }
-  #printable-ticket, #printable-ticket * {
-    visibility: visible;
-  }
+  #printable-ticket, #printable-ticket *,
   #printable-certificate, #printable-certificate * {
     visibility: visible;
   }
@@ -36,4 +224,3 @@
     box-shadow: none;
   }
 }
-

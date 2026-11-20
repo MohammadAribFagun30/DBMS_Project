@@ -12,4 +12,16 @@ export default {
   jwt_refresh_secret: process.env.JWT_REFRESH_SECRET!,
   jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN!,
   jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN!,
+  // Email Configuration (Resend or Nodemailer SMTP)
+  email: {
+    from: process.env.EMAIL_FROM || "ClubVerse <no-reply@clubverse.edu>",
+    resendApiKey: process.env.RESEND_API_KEY,
+    smtp: {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+      secure: process.env.SMTP_SECURE === "true",
+    },
+  },
 };

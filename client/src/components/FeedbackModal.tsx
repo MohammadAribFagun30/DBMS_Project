@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { apiFeedback } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { X, Star, ShieldCheck, Send } from 'lucide-react';
+import { X, Star, ShieldCheck } from 'lucide-react';
 
 interface FeedbackModalProps {
   eventId: number | null;
@@ -43,33 +43,45 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
     }
   };
 
+  const ratingLabel = (r: number) => {
+    switch (r) {
+      case 5: return 'Outstanding (5/5)';
+      case 4: return 'Very Good (4/5)';
+      case 3: return 'Average / Fair (3/5)';
+      case 2: return 'Needs Improvement (2/5)';
+      case 1: return 'Poor Experience (1/5)';
+      default: return '';
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="relative bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-slate-900 dark:text-white transition-colors">
-        <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-indigo-900 p-6 text-white relative border-b border-amber-800">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+      <div className="relative bg-[var(--surface)] rounded-[6px] max-w-md w-full border border-[var(--border)] overflow-hidden text-[var(--text)]">
+        <div className="p-5 border-b border-[var(--border)] relative bg-[var(--surface-alt)]">
           <button
+            type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute top-4 right-4 w-7 h-7 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-3.5 h-3.5" strokeWidth={1.5} />
           </button>
-          <div className="flex items-center gap-2 mb-2 text-amber-200 text-xs font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4 text-white" />
-            100% Anonymous Feedback
+          <div className="flex items-center gap-1.5 mb-1 text-[var(--primary)] text-[10px] font-mono uppercase tracking-wider">
+            <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
+            100% Anonymous Feedback Protocol
           </div>
-          <h3 className="text-xl font-extrabold">{eventTitle}</h3>
-          <p className="text-xs text-amber-100 mt-1">
-            Your review helps calculate the annual club rankings and enhance future events.
+          <h3 className="font-heading font-semibold text-base text-[var(--text)]">{eventTitle}</h3>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Your review contributes 30% to the organizing club's annual score.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Star Rating Selector */}
-          <div className="text-center space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-              Rate your experience
+          <div className="text-center space-y-1.5">
+            <label className="text-xs font-mono uppercase tracking-wider text-[var(--muted)] block">
+              Rate Your Experience
             </label>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => {
                 const filled = (hoverRating || rating) >= star;
                 return (
@@ -79,56 +91,53 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
                     onClick={() => setRating(star)}
-                    className="p-1 transition-transform hover:scale-125 focus:outline-none"
+                    className="p-1 focus:outline-none cursor-pointer"
                   >
                     <Star
-                      className={`w-8 h-8 ${
+                      className={`w-6 h-6 ${
                         filled
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-slate-300 dark:text-slate-600 hover:text-slate-400'
+                          ? 'fill-[var(--highlight)] text-[var(--highlight)]'
+                          : 'text-[var(--border)]'
                       } transition-colors`}
+                      strokeWidth={1.5}
                     />
                   </button>
                 );
               })}
             </div>
-            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 block">
-              {rating === 5 && 'Outstanding ⭐⭐⭐⭐⭐'}
-              {rating === 4 && 'Very Good ⭐⭐⭐⭐'}
-              {rating === 3 && 'Average / Fair ⭐⭐⭐'}
-              {rating === 2 && 'Needs Improvement ⭐⭐'}
-              {rating === 1 && 'Poor Experience ⭐'}
+            <span className="text-xs font-mono font-medium text-[var(--highlight)] block">
+              {ratingLabel(rating)}
             </span>
           </div>
 
-          {/* Comments input */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Anonymous Feedback & Suggestions (Optional)
+          {/* Comments */}
+          <div>
+            <label className="block text-xs font-medium text-[var(--text)] mb-1">
+              Constructive Comments / Key Takeaways
             </label>
             <textarea
-              rows={4}
-              placeholder="What did you enjoy most about this workshop? What could be improved for next time?"
+              rows={3}
+              placeholder="What went well? Any suggestions for future sessions?"
               value={comments}
               onChange={(e) => setComments(e.target.value)}
-              className="w-full p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all resize-none"
+              className="w-full px-3 py-2 text-xs text-[var(--text)] placeholder:text-[var(--muted)] font-sans"
             />
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+          {/* Action buttons */}
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white text-xs font-bold transition-colors"
+              className="btn-secondary text-xs py-1.5 px-3"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/25 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              className="btn-primary text-xs py-1.5 px-4 disabled:opacity-60"
             >
-              <Send className="w-3.5 h-3.5" />
               {submitting ? 'Submitting...' : 'Submit Anonymous Review'}
             </button>
           </div>

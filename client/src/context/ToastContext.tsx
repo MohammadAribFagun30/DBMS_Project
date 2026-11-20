@@ -45,25 +45,25 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-lg border backdrop-blur-md transition-all duration-300 transform translate-y-0 ${
+            className={`pointer-events-auto flex items-center justify-between p-3.5 rounded-[6px] border transition-all duration-150 ${
               toast.type === 'success'
-                ? 'bg-emerald-50/95 border-emerald-200 text-emerald-900'
+                ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text)]'
                 : toast.type === 'error'
-                ? 'bg-rose-50/95 border-rose-200 text-rose-900'
-                : 'bg-indigo-50/95 border-indigo-200 text-indigo-900'
+                ? 'bg-[var(--surface)] border-[var(--status-rejected-text)] text-[var(--text)]'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text)]'
             }`}
           >
-            <div className="flex items-center gap-3">
-              {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
-              {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />}
-              {toast.type === 'info' && <Info className="w-5 h-5 text-indigo-600 shrink-0" />}
-              <p className="text-sm font-medium">{toast.message}</p>
+            <div className="flex items-center gap-2.5">
+              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-[var(--status-approved-text)] shrink-0" strokeWidth={1.5} />}
+              {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-[var(--status-rejected-text)] shrink-0" strokeWidth={1.5} />}
+              {toast.type === 'info' && <Info className="w-4 h-4 text-[var(--status-completed-text)] shrink-0" strokeWidth={1.5} />}
+              <p className="text-xs font-medium">{toast.message}</p>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-slate-400 hover:text-slate-600 ml-2 p-1 rounded-lg hover:bg-black/5"
+              className="text-[var(--muted)] hover:text-[var(--text)] ml-2 p-1 rounded-[4px] hover:bg-[var(--surface-alt)] transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" strokeWidth={1.5} />
             </button>
           </div>
         ))}

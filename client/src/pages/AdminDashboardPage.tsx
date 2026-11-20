@@ -34,7 +34,6 @@ import {
   ChevronRight,
   ShieldCheck,
   CheckCircle,
-  XCircle,
   Clock,
   Award,
   DollarSign,
@@ -45,19 +44,16 @@ import {
   Search,
   PlusCircle,
   RefreshCw,
-  Sparkles,
   CheckCheck,
   ExternalLink,
-  LogOut,
   Building2,
-  SlidersHorizontal,
-  Layers,
-  Menu,
   X,
+  Menu,
   Compass,
-  Settings,
-  PanelLeftClose,
-  PanelLeftOpen
+  Bookmark,
+  LogOut,
+  SlidersHorizontal,
+  FileCheck
 } from 'lucide-react';
 
 type AdminTab =
@@ -149,7 +145,6 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await checkBackendHealth();
       await loadAll();
-      // Ensure visible feedback with smooth minimum duration
       await new Promise((resolve) => setTimeout(resolve, 600));
     } catch (err: any) {
       console.error('Failed to refresh dashboard data:', err);
@@ -172,38 +167,27 @@ export const AdminDashboardPage: React.FC = () => {
   const handleMarkAttendance = async (regId: number) => {
     try {
       await apiRegistrations.markAttended(regId);
-      toast.success('Attendance confirmed! Certificate unlocked.');
+      toast.success('Attendee marked present & eligible for certificate!');
       loadAll();
     } catch (err: any) {
-      toast.error(err.message || 'Attendance action failed');
-    }
-  };
-
-  const handleGenerateCertificate = async () => {
-    if (!selectedEventId) return;
-    try {
-      const res = await apiCertificates.issueForEvent(Number(selectedEventId));
-      toast.success(`${res.count} certificate(s) issued for event attendees!`);
-      loadAll();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate certificates');
+      toast.error(err.message || 'Check-in failed');
     }
   };
 
   const handleRecordSponsorship = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sponsorForm.eventId || !sponsorForm.sponsorId) {
-      toast.error('Select event and sponsor.');
+      toast.error('Please select both an event and a sponsor company.');
       return;
     }
     try {
-      await apiSponsors.recordFunding({
+      await apiSponsors.linkEventSponsor({
         eventId: Number(sponsorForm.eventId),
         sponsorId: Number(sponsorForm.sponsorId),
         amountFunded: Number(sponsorForm.amountFunded),
         sponsorshipTier: sponsorForm.sponsorshipTier,
       });
-      toast.success('Sponsorship funds recorded into event ledger!');
+      toast.success('Sponsorship funds recorded to ledger!');
       loadAll();
     } catch (err: any) {
       toast.error(err.message || 'Failed to record sponsorship');
@@ -211,21 +195,36 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   const handleGenerateRanking = async () => {
-    setGeneratingRankings(true);
     try {
+      setGeneratingRankings(true);
       await apiRankings.generate(rankingYear);
-      toast.success(`Rankings for ${rankingYear} successfully computed and published!`);
-      loadAll();
+      toast.success(`Annual ${rankingYear} Club Rankings computed via 3-Factor Normalization Algorithm!`);
+      const rk = await apiRankings.getByYear(rankingYear);
+      setRankings(rk);
     } catch (err: any) {
-      toast.error(err.message || 'Failed to generate rankings');
+      toast.error(err.message || 'Failed to compute rankings');
     } finally {
       setGeneratingRankings(false);
     }
   };
 
-  const handleSignOut = () => {
-    logout();
-    navigate('/login');
+  const handleGenerateCertificate = async () => {
+    if (!selectedEventId) {
+      toast.error('Please select an event first.');
+      return;
+    }
+    try {
+      const reg = registrations.find((r) => r.eventId === Number(selectedEventId));
+      if (!reg) {
+        toast.error('No attendees found for this event to issue certificate.');
+        return;
+      }
+      await apiCertificates.generate(reg.id);
+      toast.success('Digital certificate generated with verifiable hash!');
+      loadAll();
+    } catch (err: any) {
+      toast.error(err.message || 'Certificate generation failed');
+    }
   };
 
   const pendingEvents = events.filter((e) => e.status === 'PENDING');
@@ -252,7 +251,6 @@ export const AdminDashboardPage: React.FC = () => {
     'LOGS'
   ].includes(activeTab);
 
-  // Tab Breadcrumb text
   const getBreadcrumb = () => {
     switch (activeTab) {
       case 'DASHBOARD':
@@ -271,50 +269,51 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#08090e] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+    <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)] font-sans">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpenMobile && (
         <div
           onClick={() => setSidebarOpenMobile(false)}
-          className="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
         />
       )}
 
-      {/* LEFT SIDEBAR - Supports both Expanded (w-64) and Collapsed Rail (w-[72px]) with Hover Tooltips */}
+      {/* LEFT SIDEBAR - Expanded (w-64) or Collapsed Rail (w-[72px]) */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen bg-white dark:bg-[#0a0b12] border-r border-slate-200 dark:border-slate-800/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 overflow-visible ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen bg-[var(--surface)] border-r border-[var(--border)] flex flex-col justify-between transition-all shrink-0 overflow-visible ${
           sidebarOpenMobile ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         } ${sidebarOpen ? 'lg:w-64' : 'lg:w-[72px]'}`}
       >
         {sidebarOpen ? (
           /* EXPANDED FULL SIDEBAR VIEW */
           <div className="w-64 flex flex-col justify-between h-full">
-            <div className="p-4 space-y-6">
-              {/* Top Logo - Project Branding */}
-              <div className="flex items-center justify-between px-2 pt-2">
-                <Link to="/home" className="flex items-center gap-2.5 group">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-                    <Sparkles className="w-5 h-5" />
+            <div className="p-4 space-y-4">
+              {/* Top Logo */}
+              <div className="flex items-center justify-between px-2 pt-1">
+                <Link to="/home" className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center">
+                    <Bookmark className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-700 dark:from-white dark:via-indigo-100 dark:to-indigo-300 bg-clip-text text-transparent">
+                    <span className="font-heading font-semibold text-base tracking-tight text-[var(--text)]">
                       ClubVerse
                     </span>
-                    <span className="block text-[9px] uppercase font-bold tracking-widest text-indigo-600 dark:text-indigo-400 -mt-1">
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--muted)] -mt-0.5">
                       {isBn ? 'আইআইইউসি অ্যাডমিন' : 'IIUC Admin'}
                     </span>
                   </div>
                 </Link>
                 <button
+                  type="button"
                   onClick={() => setSidebarOpenMobile(false)}
-                  className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1"
+                  className="lg:hidden text-[var(--muted)] hover:text-[var(--text)] p-1"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" strokeWidth={1.5} />
                 </button>
               </div>
 
               {/* Navigation Links */}
-              <nav className="space-y-1.5 pt-2">
+              <nav className="space-y-1 pt-2">
                 {/* Dashboard */}
                 <button
                   type="button"
@@ -322,12 +321,13 @@ export const AdminDashboardPage: React.FC = () => {
                     setActiveTab('DASHBOARD');
                     setSidebarOpenMobile(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${activeTab === 'DASHBOARD'
-                    ? 'bg-indigo-50 dark:bg-[#1e1c36] text-indigo-600 dark:text-[#8576ff] border border-indigo-200/80 dark:border-transparent'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
-                    }`}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs font-medium transition-colors cursor-pointer ${
+                    activeTab === 'DASHBOARD'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <LayoutGrid className="w-4 h-4" />
+                  <LayoutGrid className="w-4 h-4" strokeWidth={1.5} />
                   <span>{t('Dashboard')}</span>
                 </button>
 
@@ -336,39 +336,39 @@ export const AdminDashboardPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setWorkspaceOpen(!workspaceOpen)}
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <Folder className="w-4 h-4" />
+                    <div className="flex items-center gap-2.5">
+                      <Folder className="w-4 h-4" strokeWidth={1.5} />
                       <span>{t('Workspace')}</span>
                     </div>
                     {workspaceOpen ? (
-                      <ChevronDown className="w-3.5 h-3.5" />
+                      <ChevronDown className="w-3.5 h-3.5" strokeWidth={1.5} />
                     ) : (
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
                     )}
                   </button>
 
-                  {/* Workspace Submenu Items */}
                   {workspaceOpen && (
-                    <div className="pl-6 pt-1 space-y-1 border-l border-slate-200 dark:border-slate-800 ml-4 my-1">
+                    <div className="pl-6 pr-1 py-1 space-y-0.5 border-l border-[var(--border)] ml-4 mt-1">
                       <button
                         type="button"
                         onClick={() => {
                           setActiveTab('EVENTS_WORKSHOPS');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === 'EVENTS_WORKSHOPS'
-                          ? 'text-indigo-600 dark:text-[#8576ff] bg-indigo-50 dark:bg-[#1e1c36]/70 font-semibold border border-indigo-200/60 dark:border-transparent'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30'
-                          }`}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                          activeTab === 'EVENTS_WORKSHOPS'
+                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                        }`}
                       >
                         <div className="flex items-center gap-2">
-                          <Compass className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                          <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
                           <span>{t('Events & Workshops')}</span>
                         </div>
                         {pendingEvents.length > 0 && (
-                          <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 text-[10px] font-bold flex items-center justify-center">
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[4px] bg-[var(--status-pending-bg)] text-[var(--status-pending-text)]">
                             {pendingEvents.length}
                           </span>
                         )}
@@ -380,12 +380,13 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('CLUBS_RANKINGS');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === 'CLUBS_RANKINGS'
-                          ? 'text-indigo-600 dark:text-[#8576ff] bg-indigo-50 dark:bg-[#1e1c36]/70 font-semibold border border-indigo-200/60 dark:border-transparent'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30'
-                          }`}
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                          activeTab === 'CLUBS_RANKINGS'
+                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                        }`}
                       >
-                        <Trophy className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                        <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
                         <span>{t('Clubs & Rankings')}</span>
                       </button>
 
@@ -395,12 +396,13 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('ATTENDANCE');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === 'ATTENDANCE'
-                          ? 'text-indigo-600 dark:text-[#8576ff] bg-indigo-50 dark:bg-[#1e1c36]/70 font-semibold border border-indigo-200/60 dark:border-transparent'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30'
-                          }`}
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                          activeTab === 'ATTENDANCE'
+                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                        }`}
                       >
-                        <CheckCheck className="w-3.5 h-3.5" />
+                        <CheckCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
                         <span>{t('Attendance')}</span>
                       </button>
 
@@ -410,12 +412,13 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('SPONSORSHIP');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === 'SPONSORSHIP'
-                          ? 'text-indigo-600 dark:text-[#8576ff] bg-indigo-50 dark:bg-[#1e1c36]/70 font-semibold border border-indigo-200/60 dark:border-transparent'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30'
-                          }`}
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                          activeTab === 'SPONSORSHIP'
+                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                        }`}
                       >
-                        <DollarSign className="w-3.5 h-3.5" />
+                        <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
                         <span>{t('Sponsorship')}</span>
                       </button>
 
@@ -425,12 +428,13 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('LOGS');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === 'LOGS'
-                          ? 'text-indigo-600 dark:text-[#8576ff] bg-indigo-50 dark:bg-[#1e1c36]/70 font-semibold border border-indigo-200/60 dark:border-transparent'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30'
-                          }`}
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                          activeTab === 'LOGS'
+                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                        }`}
                       >
-                        <Activity className="w-3.5 h-3.5" />
+                        <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
                         <span>{t('Audit Logs')}</span>
                       </button>
                     </div>
@@ -444,70 +448,71 @@ export const AdminDashboardPage: React.FC = () => {
                     setActiveTab('PROFILE');
                     setSidebarOpenMobile(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors ${activeTab === 'PROFILE'
-                    ? 'bg-indigo-50 dark:bg-[#1e1c36] text-indigo-600 dark:text-[#8576ff] font-semibold border border-indigo-200/80 dark:border-transparent'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
-                    }`}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs font-medium transition-colors cursor-pointer ${
+                    activeTab === 'PROFILE'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <UserIcon className="w-4 h-4" />
+                  <UserIcon className="w-4 h-4" strokeWidth={1.5} />
                   <span>{t('Profile')}</span>
                 </button>
               </nav>
             </div>
 
-            {/* Sidebar Footer actions */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+            {/* Bottom Actions */}
+            <div className="p-3 border-t border-[var(--border)] space-y-1">
               <Link
                 to="/home"
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] rounded-[4px] hover:bg-[var(--surface-alt)] transition-colors"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>{t('Public Campus Portal')}</span>
+                <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>{t('Campus Portal')}</span>
               </Link>
               <button
                 type="button"
-                onClick={handleSignOut}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-[#9B3A2D] hover:bg-[var(--surface-alt)] rounded-[4px] transition-colors cursor-pointer"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
                 <span>{t('Sign Out')}</span>
               </button>
             </div>
           </div>
         ) : (
-          /* COLLAPSED MINI-RAIL VIEW (Matches User's Screenshots Exactly) */
-          <div className="w-[72px] flex flex-col justify-between h-full py-4 items-center">
-            {/* Top Centered Logo */}
-            <div className="pt-2">
+          /* COLLAPSED MINI-RAIL VIEW */
+          <div className="w-[72px] flex flex-col justify-between h-full py-3 items-center">
+            {/* Top Logo */}
+            <div className="pt-1">
               <Link
                 to="/home"
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 hover:scale-105 transition-transform"
+                className="w-8 h-8 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center"
                 title="ClubVerse IIUC Admin"
               >
-                <Sparkles className="w-5 h-5" />
+                <Bookmark className="w-4 h-4" strokeWidth={1.5} />
               </Link>
             </div>
 
-            {/* Nav Icons Rail with Speech-Bubble Tooltips */}
-            <nav className="space-y-4 pt-6 w-full flex flex-col items-center">
+            {/* Nav Icons Rail with Clean Tooltips */}
+            <nav className="space-y-2 pt-4 w-full flex flex-col items-center">
               {/* Dashboard Icon */}
               <div className="relative group flex justify-center w-full">
                 <button
                   type="button"
                   onClick={() => setActiveTab('DASHBOARD')}
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-9 h-9 rounded-[6px] flex items-center justify-center transition-colors cursor-pointer ${
                     activeTab === 'DASHBOARD'
-                      ? 'bg-indigo-50 dark:bg-[#1e1c36] text-indigo-600 dark:text-[#8576ff] shadow-xs ring-1 ring-indigo-200/80 dark:ring-indigo-500/40'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
                   }`}
                 >
-                  <LayoutGrid className="w-5 h-5" />
+                  <LayoutGrid className="w-4 h-4" strokeWidth={1.5} />
                 </button>
-
-                {/* Speech Bubble Tooltip - Bluish in Light Mode, Black in Dark Mode */}
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none drop-shadow-xl">
-                  <span className="w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-blue-600 dark:border-r-slate-900" />
-                  <span className="bg-blue-600 dark:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-blue-500 dark:border-slate-800 shadow-xl whitespace-nowrap tracking-wide">
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
+                  <span className="bg-[var(--surface)] text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[4px] border border-[var(--border)] whitespace-nowrap">
                     {t('Dashboard')}
                   </span>
                 </div>
@@ -520,22 +525,19 @@ export const AdminDashboardPage: React.FC = () => {
                   onClick={() => {
                     if (!isWorkspaceTab) setActiveTab('EVENTS_WORKSHOPS');
                   }}
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer relative ${
+                  className={`w-9 h-9 rounded-[6px] flex items-center justify-center transition-colors cursor-pointer relative ${
                     isWorkspaceTab
-                      ? 'bg-indigo-50 dark:bg-[#1e1c36] text-indigo-600 dark:text-[#8576ff] shadow-xs ring-1 ring-indigo-200/80 dark:ring-indigo-500/40'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
                   }`}
                 >
-                  <Folder className="w-5 h-5" />
+                  <Folder className="w-4 h-4" strokeWidth={1.5} />
                   {pendingEvents.length > 0 && (
-                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--highlight)]" />
                   )}
                 </button>
-
-                {/* Speech Bubble Tooltip - Bluish in Light Mode, Black in Dark Mode */}
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none drop-shadow-xl">
-                  <span className="w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-blue-600 dark:border-r-slate-900" />
-                  <span className="bg-blue-600 dark:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-blue-500 dark:border-slate-800 shadow-xl whitespace-nowrap tracking-wide">
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
+                  <span className="bg-[var(--surface)] text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[4px] border border-[var(--border)] whitespace-nowrap">
                     {t('Workspace')}
                   </span>
                 </div>
@@ -546,202 +548,170 @@ export const AdminDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('PROFILE')}
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-9 h-9 rounded-[6px] flex items-center justify-center transition-colors cursor-pointer ${
                     activeTab === 'PROFILE'
-                      ? 'bg-indigo-50 dark:bg-[#1e1c36] text-indigo-600 dark:text-[#8576ff] shadow-xs ring-1 ring-indigo-200/80 dark:ring-indigo-500/40'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
                   }`}
                 >
-                  <UserIcon className="w-5 h-5" />
+                  <UserIcon className="w-4 h-4" strokeWidth={1.5} />
                 </button>
-
-                {/* Speech Bubble Tooltip - Bluish in Light Mode, Black in Dark Mode */}
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none drop-shadow-xl">
-                  <span className="w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-blue-600 dark:border-r-slate-900" />
-                  <span className="bg-blue-600 dark:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-blue-500 dark:border-slate-800 shadow-xl whitespace-nowrap tracking-wide">
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
+                  <span className="bg-[var(--surface)] text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[4px] border border-[var(--border)] whitespace-nowrap">
                     {t('Profile')}
                   </span>
                 </div>
               </div>
             </nav>
 
-            {/* Bottom Actions Rail */}
-            <div className="space-y-3 pb-2 w-full flex flex-col items-center">
-              {/* Settings / Public Portal */}
-              <div className="relative group flex justify-center w-full">
-                <Link
-                  to="/home"
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors"
-                >
-                  <ExternalLink className="w-5 h-5" />
-                </Link>
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none drop-shadow-xl">
-                  <span className="w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-blue-600 dark:border-r-slate-900" />
-                  <span className="bg-blue-600 dark:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-blue-500 dark:border-slate-800 shadow-xl whitespace-nowrap tracking-wide">
-                    {t('Public Campus Portal')}
-                  </span>
-                </div>
-              </div>
-
-              {/* Sign Out */}
-              <div className="relative group flex justify-center w-full">
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-rose-600" />
-                  <span className="bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xl whitespace-nowrap">
-                    {t('Sign Out')}
-                  </span>
-                </div>
-              </div>
+            {/* Bottom Actions */}
+            <div className="space-y-1 flex flex-col items-center border-t border-[var(--border)] pt-2 w-full">
+              <Link
+                to="/home"
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]"
+                title="Public Campus Portal"
+              >
+                <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-[#9B3A2D] hover:bg-[var(--surface-alt)] cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+              </button>
             </div>
           </div>
         )}
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* TOP BAR - Exactly styled like User's screenshot */}
-        <header className="h-16 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-[#090a0f]/90 backdrop-blur-md flex items-center justify-between sticky top-0 z-30 transition-colors">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        {/* TOP BAR */}
+        <header className="sticky top-0 z-30 h-14 bg-[var(--surface)] border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpenMobile(true)}
-              className="lg:hidden p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            {/* Sidebar Toggle Button (Modern Sleek Square Badge) - Dashboard, Workspace, Profile */}
+            {/* Toggle Sidebar Button */}
             <button
               type="button"
               onClick={() => {
                 if (window.innerWidth < 1024) {
-                  setSidebarOpenMobile((prev) => !prev);
+                  setSidebarOpenMobile(!sidebarOpenMobile);
                 } else {
-                  setSidebarOpen((prev) => !prev);
+                  setSidebarOpen(!sidebarOpen);
                 }
               }}
-              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#12131f] border border-slate-200/90 dark:border-slate-800/90 hover:bg-white dark:hover:bg-[#181928] hover:border-indigo-300 dark:hover:border-indigo-500/50 shadow-xs transition-all cursor-pointer group"
+              className="w-8 h-8 rounded-[6px] border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+              title="Toggle sidebar"
             >
-              <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
-                  sidebarOpen
-                    ? 'bg-white dark:bg-slate-800/90 border border-slate-300/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 group-hover:border-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 shadow-2xs'
-                    : 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30 border border-indigo-500'
-                }`}
-              >
-                {sidebarOpen ? (
-                  <PanelLeftClose className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-                ) : (
-                  <PanelLeftOpen className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                )}
-              </div>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
-                {getBreadcrumb()}
-              </span>
+              <Menu className="w-4 h-4" strokeWidth={1.5} />
             </button>
 
-            {/* Quick Top Navigation (Only shown when inside Workspace tabs: Events, Rankings, Attendance, Sponsorship, Logs) */}
-            {activeTab !== 'DASHBOARD' && activeTab !== 'PROFILE' && (
-              <div className="hidden md:flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-200 dark:border-slate-800 overflow-x-auto">
+            {/* Breadcrumb Header */}
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-[var(--muted)] font-mono">{t('Admin')}</span>
+              <span className="text-[var(--muted)]">/</span>
+              <span className="font-medium text-[var(--text)] font-mono">{getBreadcrumb()}</span>
+            </div>
+
+            {/* Workspace Horizontal Tab List (shown when inside Workspace) */}
+            {isWorkspaceTab && (
+              <div className="hidden md:flex items-center gap-1 ml-4 pl-4 border-l border-[var(--border)]">
                 <button
                   type="button"
                   onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${activeTab === 'EVENTS_WORKSHOPS'
-                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-600/15 dark:text-indigo-400 dark:border-indigo-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                    }`}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
+                    activeTab === 'EVENTS_WORKSHOPS'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <Compass className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                  <Compass className="w-3 h-3" strokeWidth={1.5} />
                   <span>{t('Events & Workshops')}</span>
-                  {pendingEvents.length > 0 && (
-                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 text-[10px] font-bold">
-                      {pendingEvents.length}
-                    </span>
-                  )}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('CLUBS_RANKINGS')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${activeTab === 'CLUBS_RANKINGS'
-                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-600/15 dark:text-indigo-400 dark:border-indigo-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                    }`}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
+                    activeTab === 'CLUBS_RANKINGS'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <Trophy className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                  <Trophy className="w-3 h-3" strokeWidth={1.5} />
                   <span>{t('Clubs & Rankings')}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('ATTENDANCE')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${activeTab === 'ATTENDANCE'
-                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-600/15 dark:text-indigo-400 dark:border-indigo-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                    }`}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
+                    activeTab === 'ATTENDANCE'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <CheckCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                  <CheckCheck className="w-3 h-3" strokeWidth={1.5} />
                   <span>{t('Attendance')}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('SPONSORSHIP')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${activeTab === 'SPONSORSHIP'
-                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-600/15 dark:text-indigo-400 dark:border-indigo-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                    }`}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
+                    activeTab === 'SPONSORSHIP'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <DollarSign className="w-3 h-3" strokeWidth={1.5} />
                   <span>{t('Sponsorship')}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('LOGS')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${activeTab === 'LOGS'
-                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-600/15 dark:text-indigo-400 dark:border-indigo-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
-                    }`}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
+                    activeTab === 'LOGS'
+                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                  }`}
                 >
-                  <Activity className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+                  <Activity className="w-3 h-3" strokeWidth={1.5} />
                   <span>{t('Audit Logs')}</span>
                 </button>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2.5">
             {/* Theme & Language Switcher */}
             <ThemeLanguageToggle />
 
-            {/* Admin User Pill - Matches user image: [AD] admin@test.com */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-[#141522] border border-slate-200 dark:border-slate-800 text-xs">
-              <span className="w-5 h-5 rounded-full bg-indigo-900/80 text-indigo-300 font-bold text-[10px] flex items-center justify-center">
-                AD
-              </span>
-              <span className="font-medium text-slate-800 dark:text-slate-200">
+            {/* Admin User Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono">
+              <span className="text-[var(--primary)] font-semibold">AD</span>
+              <span className="text-[var(--muted)]">•</span>
+              <span className="text-[var(--text)] truncate max-w-[120px] sm:max-w-none">
                 {user?.email || 'admin@test.com'}
               </span>
             </div>
           </div>
         </header>
 
-        {/* WORKSPACE CONTENT BODY */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full">
-          {/* Header Title Section - Exactly matching screenshot */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* WORKSPACE CONTENT BODY - Left aligned, max width ~1100px */}
+        <main className="flex-1 p-4 sm:p-6 space-y-6 max-w-[1100px] w-full">
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              <h1 className="font-heading font-semibold text-xl sm:text-2xl text-[var(--text)] tracking-tight">
                 {t('Admin Dashboard')}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-[var(--muted)] mt-0.5">
                 {t('Monitor platform activity and manage your workspace.')}
               </p>
             </div>
@@ -750,10 +720,10 @@ export const AdminDashboardPage: React.FC = () => {
               type="button"
               onClick={handleManualRefresh}
               disabled={isRefreshing || loading}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-[#12131d] border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-xs self-start sm:self-auto cursor-pointer active:scale-95 disabled:opacity-60"
+              className="btn-secondary text-xs py-1.5 px-3 self-start sm:self-auto cursor-pointer disabled:opacity-60"
               title={isBn ? "ড্যাশবোর্ড রিফ্রেশ করুন" : "Refresh dashboard"}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? 'animate-spin text-indigo-600 dark:text-indigo-400' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? 'animate-spin text-[var(--primary)]' : ''}`} strokeWidth={1.5} />
               <span>{isRefreshing ? (isBn ? 'রিফ্রেশ হচ্ছে...' : 'Refreshing...') : t('Refresh', 'রিফ্রেশ')}</span>
             </button>
           </div>
@@ -761,59 +731,59 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 1: DASHBOARD OVERVIEW */}
           {activeTab === 'DASHBOARD' && (
             <div className="space-y-6">
-              {/* 4 Metric Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-[#11121c] p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-                    <Calendar className="w-5 h-5" />
+              {/* 4 Metric Cards - Dense, 6px radius, no box-shadow */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <Calendar className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">
                       {stats?.totalEvents ?? events.length}
                     </p>
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
                       {t('Campus Events')}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#11121c] p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
-                    <Users className="w-5 h-5" />
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <Users className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">
                       {stats?.totalRegistrations ?? 1240}
                     </p>
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
                       {t('Issued Passes')}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#11121c] p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-                    <DollarSign className="w-5 h-5" />
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <DollarSign className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">
                       ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 325000).toLocaleString()}
                     </p>
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
                       {t('Raised Funds')}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#11121c] p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-xs flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                    <Clock className="w-5 h-5" />
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">
                       {pendingEvents.length}
                     </p>
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
                       {t('Pending Approvals')}
                     </span>
                   </div>
@@ -821,55 +791,58 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
 
               {/* Two Column Split: Pending Approvals Queue & Live Audit Logs */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Pending Approvals Queue */}
-                <div className="bg-white dark:bg-[#11121c] rounded-2xl border border-slate-200 dark:border-slate-800/80 p-5 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                     <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-amber-500" />
-                      <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                      <ShieldCheck className="w-4 h-4 text-[var(--highlight)]" strokeWidth={1.5} />
+                      <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
                         {t('Pending Event Approvals Queue')}
                       </h3>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
-                      className="text-xs text-[#8576ff] hover:underline font-semibold"
+                      className="text-xs text-[var(--primary)] hover:underline font-mono"
                     >
-                      {isBn ? `সবগুলো দেখুন (${pendingEvents.length})` : `View all (${pendingEvents.length})`}
+                      {isBn ? `সবগুলো (${pendingEvents.length})` : `View all (${pendingEvents.length})`}
                     </button>
                   </div>
 
                   {pendingEvents.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                      <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
-                      <p className="font-medium text-slate-700 dark:text-slate-300">{t('All events moderated!')}</p>
+                    <div className="py-6 text-center text-xs text-[var(--muted)] space-y-1">
+                      <CheckCircle className="w-6 h-6 text-[#2F6B4F] dark:text-[#7CC09E] mx-auto" strokeWidth={1.5} />
+                      <p className="font-medium text-[var(--text)]">{t('All events moderated!')}</p>
                       <p>{t('No proposals currently awaiting review.')}</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {pendingEvents.slice(0, 3).map((event) => (
                         <div
                           key={event.id}
-                          className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs"
+                          className="p-2.5 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-between gap-3 text-xs"
                         >
                           <div className="min-w-0">
-                            <h4 className="font-bold text-slate-900 dark:text-white truncate">
+                            <h4 className="font-medium text-[var(--text)] truncate">
                               {event.title}
                             </h4>
-                            <p className="text-slate-500 dark:text-slate-400 truncate">
+                            <p className="text-[var(--muted)] text-[11px] truncate">
                               {t(event.club?.clubName || '')} • {event.eventType}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
+                              type="button"
                               onClick={() => handleUpdateStatus(event.id, 'APPROVED')}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px]"
+                              className="px-2 py-0.5 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] font-medium text-[11px]"
                             >
                               {t('Approve')}
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleUpdateStatus(event.id, 'REJECTED')}
-                              className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-rose-600 dark:text-rose-400 font-bold text-[11px]"
+                              className="px-2 py-0.5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] text-[#9B3A2D] font-medium text-[11px]"
                             >
                               {t('Reject')}
                             </button>
@@ -881,35 +854,36 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
 
                 {/* Recent Audit Activity */}
-                <div className="bg-white dark:bg-[#11121c] rounded-2xl border border-slate-200 dark:border-slate-800/80 p-5 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                     <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-indigo-500" />
-                      <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                      <Activity className="w-4 h-4 text-[var(--muted)]" strokeWidth={1.5} />
+                      <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
                         {t('Platform Audit Activity')}
                       </h3>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setActiveTab('LOGS')}
-                      className="text-xs text-[#8576ff] hover:underline font-semibold"
+                      className="text-xs text-[var(--primary)] hover:underline font-mono"
                     >
                       {t('View full log')}
                     </button>
                   </div>
 
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  <div className="space-y-1.5 max-h-60 overflow-y-auto">
                     {auditLogs.slice(0, 5).map((log) => (
                       <div
                         key={log.id}
-                        className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-xs"
+                        className="p-2 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-2 truncate">
-                          <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                          <span className="font-mono text-slate-800 dark:text-slate-200 truncate">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shrink-0" />
+                          <span className="font-mono text-xs text-[var(--text)] truncate">
                             {log.action}
                           </span>
                         </div>
-                        <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                        <span className="text-[10px] text-[var(--muted)] font-mono shrink-0">
                           {new Date(log.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -920,57 +894,101 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Annual Rankings Preview Table */}
+              <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-4 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-[var(--highlight)]" strokeWidth={1.5} />
+                    <h3 className="font-heading font-semibold text-sm text-[var(--text)]">
+                      {t('IIUC 3-Factor Normalization Algorithm')}
+                    </h3>
+                  </div>
+                  <span className="text-xs font-mono text-[var(--muted)]">
+                    35% Events + 35% Sponsorship + 30% Feedback
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="dense-table">
+                    <thead>
+                      <tr>
+                        <th>{t('Rank')}</th>
+                        <th>{t('Club Name')}</th>
+                        <th>{t('Events Score')}</th>
+                        <th>{t('Sponsorship')}</th>
+                        <th>{t('Feedback')}</th>
+                        <th>{t('Final Score')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rankings.slice(0, 4).map((r) => (
+                        <tr key={r.id}>
+                          <td className="font-mono font-medium text-[var(--text)]">
+                            #{r.rankPosition}
+                          </td>
+                          <td className="font-medium text-[var(--text)]">
+                            {t(r.club?.clubName || r.clubName || '')}
+                          </td>
+                          <td className="font-mono text-[var(--muted)]">
+                            {Number(r.totalEventsScore).toFixed(1)}
+                          </td>
+                          <td className="font-mono text-[var(--muted)]">
+                            {Number(r.sponsorshipScore).toFixed(1)}
+                          </td>
+                          <td className="font-mono text-[var(--muted)]">
+                            {Number(r.feedbackScore).toFixed(1)}
+                          </td>
+                          <td className="font-mono font-semibold text-[var(--primary)]">
+                            {Number(r.finalScore).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 
           {/* TAB VIEW 2: EVENTS & WORKSHOPS CONSOLE */}
           {activeTab === 'EVENTS_WORKSHOPS' && (
-            <div className="space-y-6">
-              {/* Header card with Search and Filters */}
-              <div className="bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-5">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <Compass className="w-5 h-5 text-indigo-500" />
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-white">
-                        {t('Events & Workshops Console')}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <h3 className="font-heading font-semibold text-base text-[var(--text)]">
+                      {t('Events & Workshops Console')}
+                    </h3>
+                    <p className="text-xs text-[var(--muted)] mt-0.5">
                       {t('Manage, moderate, and monitor campus events and hands-on workshops.')}
                     </p>
                   </div>
 
-                  {/* Summary Badges */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-bold">
+                    <span className="px-2 py-1 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono text-[var(--text)]">
                       {isBn ? `${events.length}টি মোট ইভেন্ট` : `${events.length} Total Events`}
                     </span>
-                    <span className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 text-xs font-bold">
+                    <span className="px-2 py-1 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono text-[var(--text)]">
                       {isBn ? `${workshopCount}টি ওয়ার্কশপ` : `${workshopCount} Workshops`}
                     </span>
-                    {pendingEvents.length > 0 && (
-                      <span className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-bold">
-                        {isBn ? `${pendingEvents.length}টি অপেক্ষমান` : `${pendingEvents.length} Pending`}
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                {/* Search & Filter Pills */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                {/* Search & Filter */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[var(--border)]">
                   <div className="relative flex-1 max-w-md">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
                     <input
                       type="text"
                       placeholder={t('Search by event title or club...')}
                       value={eventSearch}
                       onChange={(e) => setEventSearch(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)] placeholder:text-[var(--muted)]"
                     />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1">
                     {[
                       { key: 'ALL', label: isBn ? `সকল (${events.length})` : `All (${events.length})` },
                       { key: 'WORKSHOP', label: isBn ? `ওয়ার্কশপ (${workshopCount})` : `Workshops (${workshopCount})` },
@@ -981,10 +999,11 @@ export const AdminDashboardPage: React.FC = () => {
                         key={tab.key}
                         type="button"
                         onClick={() => setEventFilter(tab.key as any)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${eventFilter === tab.key
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
-                          }`}
+                        className={`px-2.5 py-1 rounded-[4px] text-xs font-mono transition-colors cursor-pointer ${
+                          eventFilter === tab.key
+                            ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                            : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--border)]'
+                        }`}
                       >
                         {tab.label}
                       </button>
@@ -992,118 +1011,98 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Events List */}
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredEvents.length === 0 ? (
-                    <div className="py-12 text-center text-slate-500 dark:text-slate-400 text-xs">
-                      {t('No events matching criteria.')}
-                    </div>
-                  ) : (
-                    filteredEvents.map((ev) => (
-                      <div
-                        key={ev.id}
-                        className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-1.5 max-w-2xl">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <TypeBadge type={ev.eventType} />
-                            <StatusBadge status={ev.status} />
-                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                              {ev.club?.clubName}
-                            </span>
-                            <span className="text-xs text-slate-400 font-mono">
-                              • {new Date(ev.startTime).toLocaleDateString()}
-                            </span>
-                          </div>
-
-                          <h4 className="font-bold text-base text-slate-900 dark:text-white">
-                            {ev.title}
-                          </h4>
-
-                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                            {ev.description || t('No description provided.')}
-                          </p>
-
-                          {/* Workshop Details if available */}
-                          {ev.workshop && (
-                            <div className="mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs space-y-1">
-                              <div className="flex items-center gap-2 font-semibold text-purple-400">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>{isBn ? 'স্পিকার:' : 'Speaker:'} {ev.workshop.speakerName}</span>
+                {/* Events Dense Table */}
+                <div className="overflow-x-auto">
+                  <table className="dense-table">
+                    <thead>
+                      <tr>
+                        <th>{t('Event Title')}</th>
+                        <th>{t('Club')}</th>
+                        <th>{t('Type')}</th>
+                        <th>{t('Date')}</th>
+                        <th>{t('Status')}</th>
+                        <th className="text-right">{t('Actions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredEvents.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="text-center py-6 text-[var(--muted)]">
+                            {t('No events matching criteria.')}
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredEvents.map((ev) => (
+                          <tr key={ev.id}>
+                            <td className="font-medium text-[var(--text)] max-w-xs truncate">
+                              {ev.title}
+                            </td>
+                            <td className="text-[var(--muted)]">{ev.club?.clubName}</td>
+                            <td><TypeBadge type={ev.eventType} /></td>
+                            <td className="font-mono text-[var(--muted)]">
+                              {new Date(ev.startTime).toLocaleDateString()}
+                            </td>
+                            <td><StatusBadge status={ev.status} /></td>
+                            <td className="text-right">
+                              <div className="inline-flex items-center gap-1.5">
+                                {ev.status !== 'APPROVED' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateStatus(ev.id, 'APPROVED')}
+                                    className="px-2 py-0.5 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] text-xs font-medium cursor-pointer"
+                                  >
+                                    {t('Approve')}
+                                  </button>
+                                )}
+                                {ev.status !== 'REJECTED' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateStatus(ev.id, 'REJECTED')}
+                                    className="px-2 py-0.5 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[#9B3A2D] text-xs font-medium cursor-pointer"
+                                  >
+                                    {t('Reject')}
+                                  </button>
+                                )}
+                                {ev.status === 'APPROVED' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateStatus(ev.id, 'COMPLETED')}
+                                    className="px-2 py-0.5 rounded-[4px] btn-secondary text-xs cursor-pointer"
+                                  >
+                                    {t('Complete')}
+                                  </button>
+                                )}
                               </div>
-                              {ev.workshop.speakerBio && (
-                                <p className="text-[11px] text-slate-400">{ev.workshop.speakerBio}</p>
-                              )}
-                              {ev.workshop.prerequisites && (
-                                <p className="text-[11px] text-amber-400/90 font-mono">
-                                  {isBn ? 'পূর্বশর্ত:' : 'Prerequisites:'} {ev.workshop.prerequisites}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-wrap items-center gap-2 shrink-0">
-                          {ev.status !== 'APPROVED' && (
-                            <button
-                              onClick={() => handleUpdateStatus(ev.id, 'APPROVED')}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs"
-                            >
-                              {t('Approve')}
-                            </button>
-                          )}
-                          {ev.status !== 'REJECTED' && (
-                            <button
-                              onClick={() => handleUpdateStatus(ev.id, 'REJECTED')}
-                              className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-rose-600 dark:text-rose-400 font-bold text-xs"
-                            >
-                              {t('Reject')}
-                            </button>
-                          )}
-                          {ev.status === 'APPROVED' && (
-                            <button
-                              onClick={() => handleUpdateStatus(ev.id, 'COMPLETED')}
-                              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-xs"
-                            >
-                              {t('Complete')}
-                            </button>
-                          )}
-                          <Link
-                            to="/events"
-                            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-                            title="View Public Page"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB VIEW 3: ATTENDANCE & PASS CHECK-IN DESK */}
+          {/* TAB VIEW 3: ATTENDANCE & PASS CHECK-IN */}
           {activeTab === 'ATTENDANCE' && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                    <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                       {t('Venue Check-In & Certificate Issue')}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-[var(--muted)]">
                       {t('Select event to mark attendee passes and unlock certificates.')}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <select
                       value={selectedEventId}
                       onChange={(e) => setSelectedEventId(e.target.value)}
-                      className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
+                      className="px-2.5 py-1.5 text-xs font-mono"
                     >
                       {events.map((e) => (
                         <option key={e.id} value={e.id}>
@@ -1113,45 +1112,45 @@ export const AdminDashboardPage: React.FC = () => {
                     </select>
 
                     <button
+                      type="button"
                       onClick={handleGenerateCertificate}
-                      className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      className="btn-primary text-xs py-1.5 px-3"
                     >
-                      <Award className="w-3.5 h-3.5" />
+                      <Award className="w-3.5 h-3.5" strokeWidth={1.5} />
                       <span>{t('Issue Certs')}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Attendees list */}
-                <div className="pt-2">
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                    <span>
-                      {t('Selected Event:')} <strong className="text-slate-900 dark:text-white">{selectedEvent?.title}</strong>
-                    </span>
-                    <span>{t('Total Registered:')} <strong className="text-slate-900 dark:text-white">{selectedEvent?._count?.registrations ?? 0}</strong></span>
-                  </div>
+                <div className="p-3 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs text-[var(--muted)] flex items-center justify-between font-mono">
+                  <span>
+                    {t('Selected Event:')} <strong className="text-[var(--text)]">{selectedEvent?.title}</strong>
+                  </span>
+                  <span>
+                    {t('Total Registered:')} <strong className="text-[var(--text)]">{selectedEvent?._count?.registrations ?? 0}</strong>
+                  </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB VIEW 4: SPONSORSHIP RECORDING LEDGER */}
+          {/* TAB VIEW 4: SPONSORSHIP LEDGER */}
           {activeTab === 'SPONSORSHIP' && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-5">
-                <h3 className="font-bold text-base text-slate-900 dark:text-white">
+            <div className="space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+                <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                   {t('Record Corporate Sponsorship')}
                 </h3>
 
-                <form onSubmit={handleRecordSponsorship} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form onSubmit={handleRecordSponsorship} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text)] mb-1">
                       {t('Target Event')}
                     </label>
                     <select
                       value={sponsorForm.eventId}
                       onChange={(e) => setFormSafe(setSponsorForm, 'eventId', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
+                      className="w-full px-2.5 py-1.5 text-xs"
                     >
                       <option value="">{t('Select Event...')}</option>
                       {events.map((e) => (
@@ -1163,13 +1162,13 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text)] mb-1">
                       {t('Sponsor Organization')}
                     </label>
                     <select
                       value={sponsorForm.sponsorId}
                       onChange={(e) => setFormSafe(setSponsorForm, 'sponsorId', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
+                      className="w-full px-2.5 py-1.5 text-xs"
                     >
                       <option value="">{t('Select Sponsor...')}</option>
                       {sponsors.map((s) => (
@@ -1181,25 +1180,25 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text)] mb-1">
                       {t('Amount Funded ($)')}
                     </label>
                     <input
                       type="number"
                       value={sponsorForm.amountFunded}
                       onChange={(e) => setFormSafe(setSponsorForm, 'amountFunded', Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                      className="w-full px-2.5 py-1.5 text-xs font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text)] mb-1">
                       {t('Tier')}
                     </label>
                     <select
                       value={sponsorForm.sponsorshipTier}
                       onChange={(e) => setFormSafe(setSponsorForm, 'sponsorshipTier', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
+                      className="w-full px-2.5 py-1.5 text-xs font-mono"
                     >
                       <option value="PLATINUM">{t('Platinum Tier')}</option>
                       <option value="GOLD">{t('Gold Tier')}</option>
@@ -1208,10 +1207,10 @@ export const AdminDashboardPage: React.FC = () => {
                     </select>
                   </div>
 
-                  <div className="sm:col-span-2 pt-2">
+                  <div className="sm:col-span-2 pt-1">
                     <button
                       type="submit"
-                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md cursor-pointer"
+                      className="btn-primary text-xs py-1.5 px-4"
                     >
                       {t('Record Funds to Ledger')}
                     </button>
@@ -1223,87 +1222,73 @@ export const AdminDashboardPage: React.FC = () => {
 
           {/* TAB VIEW 5: CLUBS & RANKINGS */}
           {activeTab === 'CLUBS_RANKINGS' && (
-            <div className="space-y-6">
-              {/* Top Card: Annual Rankings Generator */}
-              <div className="bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-5 h-5 text-amber-500" />
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-white">
-                        {t('IIUC 3-Factor Normalization Algorithm')}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      {t('Ranking Formula')}
+                    <h3 className="font-heading font-semibold text-base text-[var(--text)]">
+                      {t('IIUC 3-Factor Normalization Algorithm')}
+                    </h3>
+                    <p className="text-xs text-[var(--muted)] font-mono mt-0.5">
+                      35% Events + 35% Sponsorship + 30% Student Feedback
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <select
                       value={rankingYear}
                       onChange={(e) => setRankingYear(Number(e.target.value))}
-                      className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
+                      className="px-2.5 py-1.5 text-xs font-mono"
                     >
                       <option value={2026}>{isBn ? '২০২৬ সাল' : 'Year 2026'}</option>
                       <option value={2025}>{isBn ? '২০২৫ সাল' : 'Year 2025'}</option>
                     </select>
 
                     <button
+                      type="button"
                       onClick={handleGenerateRanking}
                       disabled={generatingRankings}
-                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="btn-primary text-xs py-1.5 px-3"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <SlidersHorizontal className="w-3.5 h-3.5" strokeWidth={1.5} />
                       <span>{generatingRankings ? t('Computing...') : t('Generate Rankings')}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Rankings Table */}
+                {/* Rankings Dense Table */}
                 {rankings.length > 0 && (
-                  <div className="overflow-x-auto pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <table className="w-full text-left text-xs">
+                  <div className="overflow-x-auto">
+                    <table className="dense-table">
                       <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
-                          <th className="py-2.5 px-3">{t('Rank')}</th>
-                          <th className="py-2.5 px-3">{t('Club Name')}</th>
-                          <th className="py-2.5 px-3">{t('Events Score')}</th>
-                          <th className="py-2.5 px-3">{t('Sponsorship')}</th>
-                          <th className="py-2.5 px-3">{t('Feedback')}</th>
-                          <th className="py-2.5 px-3">{t('Final Score')}</th>
+                        <tr>
+                          <th>{t('Rank')}</th>
+                          <th>{t('Club Name')}</th>
+                          <th>{t('Events Score')}</th>
+                          <th>{t('Sponsorship')}</th>
+                          <th>{t('Feedback')}</th>
+                          <th>{t('Final Score')}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      <tbody>
                         {rankings.map((r) => (
-                          <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                            <td className="py-3 px-3">
-                              <span
-                                className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] ${r.rankPosition === 1
-                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                                  : r.rankPosition === 2
-                                    ? 'bg-slate-300/20 text-slate-300 border border-slate-400/40'
-                                    : r.rankPosition === 3
-                                      ? 'bg-amber-700/20 text-amber-600 border border-amber-700/40'
-                                      : 'text-slate-400'
-                                  }`}
-                              >
-                                #{r.rankPosition}
-                              </span>
+                          <tr key={r.id}>
+                            <td className="font-mono font-medium text-[var(--text)]">
+                              #{r.rankPosition}
                             </td>
-                            <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">
+                            <td className="font-medium text-[var(--text)]">
                               {t(r.club?.clubName || r.clubName || '')}
                             </td>
-                            <td className="py-3 px-3 font-mono text-slate-600 dark:text-slate-300">
+                            <td className="font-mono text-[var(--muted)]">
                               {Number(r.totalEventsScore).toFixed(1)}
                             </td>
-                            <td className="py-3 px-3 font-mono text-slate-600 dark:text-slate-300">
+                            <td className="font-mono text-[var(--muted)]">
                               {Number(r.sponsorshipScore).toFixed(1)}
                             </td>
-                            <td className="py-3 px-3 font-mono text-slate-600 dark:text-slate-300">
+                            <td className="font-mono text-[var(--muted)]">
                               {Number(r.feedbackScore).toFixed(1)}
                             </td>
-                            <td className="py-3 px-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                            <td className="font-mono font-semibold text-[var(--primary)]">
                               {Number(r.finalScore).toFixed(2)}
                             </td>
                           </tr>
@@ -1314,42 +1299,42 @@ export const AdminDashboardPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Bottom Card: Campus Clubs Directory */}
-              <div className="bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-4">
-                <div className="flex items-center justify-between">
+              {/* Campus Clubs Directory */}
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-purple-500" />
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                    <Building2 className="w-4 h-4 text-[var(--muted)]" strokeWidth={1.5} />
+                    <h3 className="font-heading font-semibold text-sm text-[var(--text)]">
                       {t('Registered Campus Clubs Directory')}
                     </h3>
                   </div>
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="text-xs font-mono text-[var(--muted)]">
                     {isBn ? `${clubs.length}টি ক্লাব নিবন্ধিত` : `${clubs.length} Clubs Registered`}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {clubs.map((club) => (
                     <div
                       key={club.id}
-                      className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 space-y-2 hover:border-indigo-500/40 transition-colors"
+                      className="p-3 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] space-y-1.5"
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                        <h4 className="font-medium text-xs text-[var(--text)] truncate">
                           {t(club.clubName)}
                         </h4>
                         {club.establishedYear && (
-                          <span className="text-[10px] font-mono text-slate-400">
+                          <span className="text-[10px] font-mono text-[var(--muted)]">
                             {isBn ? `প্রতিষ্ঠিত ${club.establishedYear}` : `Est. ${club.establishedYear}`}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                      <p className="text-xs text-[var(--muted)] line-clamp-2">
                         {club.description || t('No description provided.')}
                       </p>
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-slate-800 text-slate-400">
+                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--border)] text-[var(--muted)] font-mono">
                         <span>{club.department?.departmentName || 'General'}</span>
-                        <span className="font-semibold text-indigo-400">
+                        <span className="text-[var(--primary)] font-medium">
                           {isBn ? `${club._count?.events || 0}টি ইভেন্ট` : `${club._count?.events || 0} events`}
                         </span>
                       </div>
@@ -1363,27 +1348,36 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 6: AUDIT LOGS */}
           {activeTab === 'LOGS' && (
             <div className="space-y-4">
-              <div className="bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-4">
-                <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3">
+                <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                   {t('Platform Security & Audit Trail')}
                 </h3>
 
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                  {auditLogs.map((log) => (
-                    <div key={log.id} className="py-3 flex items-center justify-between gap-4">
-                      <div>
-                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                          {log.action}
-                        </span>
-                        <span className="text-slate-500 ml-2">
-                          {isBn ? 'ব্যবহারকারী #' : 'User #'}{log.userId ?? 'SYSTEM'}
-                        </span>
-                      </div>
-                      <span className="text-slate-400 font-mono text-[11px]">
-                        {new Date(log.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="dense-table">
+                    <thead>
+                      <tr>
+                        <th>{t('Action')}</th>
+                        <th>{t('User')}</th>
+                        <th className="text-right">{t('Timestamp')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map((log) => (
+                        <tr key={log.id}>
+                          <td className="font-mono text-xs text-[var(--primary)] font-medium">
+                            {log.action}
+                          </td>
+                          <td className="font-mono text-xs text-[var(--muted)]">
+                            {isBn ? 'ব্যবহারকারী #' : 'User #'}{log.userId ?? 'SYSTEM'}
+                          </td>
+                          <td className="font-mono text-xs text-[var(--muted)] text-right">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -1391,33 +1385,33 @@ export const AdminDashboardPage: React.FC = () => {
 
           {/* TAB VIEW 7: PROFILE */}
           {activeTab === 'PROFILE' && (
-            <div className="max-w-2xl bg-white dark:bg-[#11121c] p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white font-extrabold text-xl flex items-center justify-center">
+            <div className="max-w-xl bg-[var(--surface)] p-5 rounded-[6px] border border-[var(--border)] space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] font-mono font-semibold text-sm flex items-center justify-center">
                   AD
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">
+                  <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                     {user?.fullName || t('System Administrator')}
                   </h3>
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase">
+                  <p className="text-xs font-mono uppercase text-[var(--muted)]">
                     {isBn ? 'রোল' : 'Role'}: {user?.role || 'ADMIN'}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500">{t('Email Address')}</span>
-                  <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{user?.email}</span>
+              <div className="space-y-2 pt-3 border-t border-[var(--border)] text-xs">
+                <div className="flex justify-between py-1 border-b border-[var(--border)]">
+                  <span className="text-[var(--muted)]">{t('Email Address')}</span>
+                  <span className="font-mono font-medium text-[var(--text)]">{user?.email}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500">{t('Matric / Admin ID')}</span>
-                  <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{user?.studentId || 'ADMIN-001'}</span>
+                <div className="flex justify-between py-1 border-b border-[var(--border)]">
+                  <span className="text-[var(--muted)]">{t('Matric / Admin ID')}</span>
+                  <span className="font-mono font-medium text-[var(--text)]">{user?.studentId || 'ADMIN-001'}</span>
                 </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-slate-500">{t('Department')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                <div className="flex justify-between py-1">
+                  <span className="text-[var(--muted)]">{t('Department')}</span>
+                  <span className="font-medium text-[var(--text)]">
                     {user?.department?.departmentName || (isBn ? 'কম্পিউটার সায়েন্স অ্যান্ড ইঞ্জিনিয়ারিং' : 'Computer Science & Engineering')}
                   </span>
                 </div>
