@@ -78,4 +78,19 @@ const getById = async (user: CurrentUser, id: number) => {
   return certificate;
 };
 
-export const certificateServices = { issue, issueForEvent, getMy, getAll, getById };
+const verify = async (certificateNumber: string) => {
+  const numericId = parseInt(certificateNumber.replace(/[^0-9]/g, ""), 10);
+  const cert = await prisma.certificate.findFirst({
+    where: {
+      OR: [
+        ...(isNaN(numericId) ? [] : [{ id: numericId }, { registrationId: numericId }]),
+        { certificateUrl: { contains: certificateNumber } },
+      ],
+    },
+    include: fullInclude,
+  });
+  if (!cert) throw new AppError("Certificate not found or invalid", httpStatus.NOT_FOUND);
+  return cert;
+};
+
+export const certificateServices = { issue, issueForEvent, getMy, getAll, getById, verify };

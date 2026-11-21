@@ -12,6 +12,7 @@ interface LanguageContextType {
 
 const bnTranslations: Record<string, string> = {
   // Navigation & Common
+  'Home': 'হোম',
   'Dashboard': 'ড্যাশবোর্ড',
   'Workspace': 'ওয়ার্কস্পেস',
   'Profile': 'প্রোফাইল',

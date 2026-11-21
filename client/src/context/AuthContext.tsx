@@ -57,30 +57,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     try {
       localStorage.removeItem('explicit_logout');
-      let loggedUser: User;
-      let tokenStr: string;
-
-      try {
-        const res = await apiAuth.login({ email, password });
-        loggedUser = res.user;
-        tokenStr = res.accessToken;
-      } catch (err: any) {
-        // Fallback for demo/offline accounts if backend is unreachable
-        const isAdminAccount = email.toLowerCase().includes('admin');
-        const role: Role = isAdminAccount ? 'ADMIN' : 'STUDENT';
-        loggedUser = {
-          id: isAdminAccount ? 1 : 3,
-          studentId: isAdminAccount ? 'ADMIN-001' : 'C221001',
-          fullName: isAdminAccount
-            ? 'System Administrator'
-            : (email.includes('test') || email.includes('student') ? 'Student (Test)' : 'Alice Rahman'),
-          email,
-          role,
-          departmentId: 1,
-          department: { id: 1, departmentName: 'Computer Science & Engineering' },
-        };
-        tokenStr = `demo-${role.toLowerCase()}-token`;
-      }
+      const res = await apiAuth.login({ email, password });
+      const loggedUser = res.user;
+      const tokenStr = res.accessToken;
 
       setToken(tokenStr);
       setUser(loggedUser);

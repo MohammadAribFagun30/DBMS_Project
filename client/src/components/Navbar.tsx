@@ -54,14 +54,6 @@ export const Navbar: React.FC = () => {
   const isWelcomePage = location.pathname === '/';
   const showUserSession = isAuthenticated && !isWelcomePage && !isAuthPage;
 
-  const landingNavLinks = [
-    { href: '#overview', label: t('Overview') },
-    { href: '#features', label: t('Features') },
-    { href: '#how-it-works', label: t('How It Works') },
-    { href: '#notice-board', label: t('Notice Board') },
-    { href: '#about-iiuc', label: t('About IIUC') },
-  ];
-
   const navLinks = isAuthPage || isWelcomePage
     ? []
     : [
@@ -93,16 +85,13 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Nav for Welcome Page */}
           {isWelcomePage && (
-            <nav className="hidden md:flex items-center gap-1 p-0.5 rounded-[6px] bg-[var(--surface-alt)] border border-[var(--border)]">
-              {landingNavLinks.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="px-3 py-1 rounded-[4px] text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] transition-colors"
-                >
-                  {item.label}
-                </a>
-              ))}
+            <nav className="hidden md:flex items-center">
+              <Link
+                to="/"
+                className="px-3 py-1.5 rounded-[6px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)] transition-colors"
+              >
+                {t('Home')}
+              </Link>
             </nav>
           )}
 
@@ -274,16 +263,13 @@ export const Navbar: React.FC = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-[var(--border)] bg-[var(--surface)] px-4 py-3 space-y-1">
           {isWelcomePage ? (
-            landingNavLinks.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-[6px] text-sm text-[var(--text)] hover:bg-[var(--surface-alt)]"
-              >
-                {item.label}
-              </a>
-            ))
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-[6px] text-sm font-semibold bg-[var(--surface-alt)] text-[var(--primary)]"
+            >
+              {t('Home')}
+            </Link>
           ) : (
             navLinks.map((item) => {
               const Icon = item.icon;

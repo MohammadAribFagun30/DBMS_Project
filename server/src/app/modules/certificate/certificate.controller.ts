@@ -29,4 +29,9 @@ const getById = catchAsync(async (req, res) => {
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Certificate retrieved", data: result });
 });
 
-export const certificateController = { issue, issueForEvent, getMy, getAll, getById };
+const verify = catchAsync(async (req, res) => {
+  const result = await certificateServices.verify(req.params.certificateNumber);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Certificate verified", data: result });
+});
+
+export const certificateController = { issue, issueForEvent, getMy, getAll, getById, verify };

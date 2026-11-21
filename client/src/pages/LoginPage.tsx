@@ -141,11 +141,11 @@ export const LoginPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => fillCredentials('student@test.com', '12345678')}
+              onClick={() => fillCredentials('user@test.com', '12345678')}
               className="w-full flex items-center justify-between p-2 rounded-[4px] bg-[var(--surface-alt)] hover:border-[var(--muted)] border border-[var(--border)] text-left cursor-pointer transition-colors"
             >
               <span className="text-xs font-semibold text-[var(--text)]">Student</span>
-              <span className="text-xs font-mono text-[var(--muted)]">student@test.com</span>
+              <span className="text-xs font-mono text-[var(--muted)]">user@test.com</span>
               <span className="text-xs font-mono text-[var(--muted)]">12345678</span>
             </button>
           </div>

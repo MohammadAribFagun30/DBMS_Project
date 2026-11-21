@@ -10,6 +10,7 @@ const router = Router();
 router.post("/", auth(Role.ADMIN), validateRequest(issueCertificateSchema), certificateController.issue);
 router.post("/event/:eventId", auth(Role.ADMIN), certificateController.issueForEvent);
 router.get("/my", auth(), certificateController.getMy);
+router.get("/verify/:certificateNumber", certificateController.verify);
 router.get("/", auth(Role.ADMIN), certificateController.getAll);
 router.get("/:id", auth(), certificateController.getById);
 

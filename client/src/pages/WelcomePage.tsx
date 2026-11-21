@@ -209,22 +209,6 @@ export const WelcomePage: React.FC = () => {
           <p className="text-xs text-[var(--muted)] max-w-2xl leading-relaxed">
             International Islamic University Chittagong (IIUC) is committed to academic and extracurricular excellence. ClubVerse serves as the official digital infrastructure connecting students with clubs, seminars, corporate sponsors, and verified credentials across Kumira Campus.
           </p>
-
-          <div className="pt-2 flex flex-wrap gap-2.5">
-            <button
-              type="button"
-              onClick={handleGetStarted}
-              className="btn-primary text-xs py-1.5 px-3.5"
-            >
-              Get Started Now
-            </button>
-            <Link
-              to="/login"
-              className="btn-secondary text-xs py-1.5 px-3.5"
-            >
-              Sign In
-            </Link>
-          </div>
         </div>
       </section>
 
