@@ -3,6 +3,7 @@ import { Registration, Certificate } from '../types';
 import { apiRegistrations, apiCertificates } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 import { StatusBadge } from '../components/Badge';
 import { TicketPassModal } from '../components/TicketPassModal';
 import { FeedbackModal } from '../components/FeedbackModal';
@@ -20,6 +21,7 @@ import {
 
 export const StudentPortalPage: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
 
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -69,10 +71,10 @@ export const StudentPortalPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-1.5 text-[var(--muted)] text-[10px] font-mono uppercase tracking-wider mb-0.5">
               <ShieldCheck className="w-3 h-3 text-[var(--primary)]" strokeWidth={1.5} />
-              Enrolled Student Account
+              {t('Enrolled Student Account', 'Enrolled Student Account')}
             </div>
             <h1 className="font-heading font-semibold text-xl text-[var(--text)]">
-              {user?.fullName || 'Student Activity Hub'}
+              {user?.fullName || t('Student Activity Hub')}
             </h1>
             <p className="text-xs font-mono text-[var(--muted)] mt-0.5">
               Matric ID: <span className="text-[var(--text)] font-semibold">{user?.studentId || 'CSE-2201'}</span> •{' '}
@@ -85,17 +87,17 @@ export const StudentPortalPage: React.FC = () => {
         <div className="flex items-center gap-3 bg-[var(--surface-alt)] p-2 rounded-[4px] border border-[var(--border)] self-start md:self-auto text-xs font-mono">
           <div className="px-2.5 py-0.5 text-center">
             <span className="font-semibold text-sm block text-[var(--text)]">{registrations.length}</span>
-            <span className="text-[var(--muted)] text-[10px] uppercase">Passes</span>
+            <span className="text-[var(--muted)] text-[10px] uppercase">{t('Passes', 'Passes')}</span>
           </div>
           <div className="w-px h-6 bg-[var(--border)]" />
           <div className="px-2.5 py-0.5 text-center">
             <span className="font-semibold text-sm block text-[var(--text)]">{attendedRegistrations.length}</span>
-            <span className="text-[var(--muted)] text-[10px] uppercase">Attended</span>
+            <span className="text-[var(--muted)] text-[10px] uppercase">{t('Attended', 'Attended')}</span>
           </div>
           <div className="w-px h-6 bg-[var(--border)]" />
           <div className="px-2.5 py-0.5 text-center">
             <span className="font-semibold text-sm block text-[var(--text)]">{certificates.length}</span>
-            <span className="text-[var(--muted)] text-[10px] uppercase">Certs</span>
+            <span className="text-[var(--muted)] text-[10px] uppercase">{t('Certs', 'Certs')}</span>
           </div>
         </div>
       </div>
@@ -112,7 +114,7 @@ export const StudentPortalPage: React.FC = () => {
           }`}
         >
           <Ticket className="w-3.5 h-3.5" strokeWidth={1.5} />
-          Event Passes ({registrations.length})
+          {t('Registered Passes')} ({registrations.length})
         </button>
 
         <button
@@ -125,7 +127,7 @@ export const StudentPortalPage: React.FC = () => {
           }`}
         >
           <Star className="w-3.5 h-3.5" strokeWidth={1.5} />
-          Feedback ({attendedRegistrations.length})
+          {t('Pending Feedback')} ({attendedRegistrations.length})
         </button>
 
         <button
@@ -138,7 +140,7 @@ export const StudentPortalPage: React.FC = () => {
           }`}
         >
           <Award className="w-3.5 h-3.5" strokeWidth={1.5} />
-          Certificates ({certificates.length})
+          {t('Verified Certificates')} ({certificates.length})
         </button>
       </div>
 
@@ -158,7 +160,7 @@ export const StudentPortalPage: React.FC = () => {
               {registrations.map((reg) => (
                 <div
                   key={reg.id}
-                  className="bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] flex flex-col justify-between space-y-3"
+                  className="card-hover-lift bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">

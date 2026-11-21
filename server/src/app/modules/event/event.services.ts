@@ -10,6 +10,7 @@ type EventQuery = {
   status?: string;
   clubId?: string;
   venueId?: string;
+  departmentId?: string;
   eventType?: string;
   upcoming?: string;
   search?: string;
@@ -36,13 +37,21 @@ const getAll = (query: EventQuery) =>
       ...(query.status && { status: query.status as EventStatus }),
       ...(query.clubId && { clubId: Number(query.clubId) }),
       ...(query.venueId && { venueId: Number(query.venueId) }),
+      ...(query.departmentId && { club: { departmentId: Number(query.departmentId) } }),
       ...(query.eventType && { eventType: { equals: query.eventType, mode: "insensitive" as const } }),
       ...(query.search && { title: { contains: query.search, mode: "insensitive" as const } }),
       // "Browse upcoming events": approved events that haven't started yet
       ...(query.upcoming === "true" && { status: EventStatus.APPROVED, startTime: { gte: new Date() } }),
     },
     include: {
-      club: { select: { id: true, clubName: true } },
+      club: {
+        select: {
+          id: true,
+          clubName: true,
+          departmentId: true,
+          department: { select: { id: true, departmentName: true } },
+        },
+      },
       venue: true,
       workshop: true,
       _count: { select: { registrations: true } },

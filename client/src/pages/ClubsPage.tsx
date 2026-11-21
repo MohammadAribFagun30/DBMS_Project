@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Club, ClubRanking } from '../types';
 import { apiClubs, apiRankings } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Trophy,
   Calendar,
@@ -12,6 +13,7 @@ import {
 
 export const ClubsPage: React.FC = () => {
   const toast = useToast();
+  const { t } = useLanguage();
 
   const [clubs, setClubs] = useState<Club[]>([]);
   const [rankings, setRankings] = useState<ClubRanking[]>([]);
@@ -45,13 +47,13 @@ export const ClubsPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
         <div>
           <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--highlight)] font-semibold">
-            Institutional Standing
+            {t('Institutional Standing')}
           </span>
           <h1 className="font-heading font-semibold text-2xl text-[var(--text)] tracking-tight">
-            Clubs & Performance Leaderboards
+            {t('Clubs & Performance Leaderboards')}
           </h1>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Recognized student organizations, performance metrics, and annual 3-factor rankings.
+            {t('Recognized student organizations, performance metrics, and annual 3-factor rankings.')}
           </p>
         </div>
 
@@ -67,7 +69,7 @@ export const ClubsPage: React.FC = () => {
             }`}
           >
             <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Annual Leaderboard
+            {t('Annual Leaderboard')}
           </button>
           <button
             type="button"
@@ -79,7 +81,7 @@ export const ClubsPage: React.FC = () => {
             }`}
           >
             <Building2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Clubs Directory
+            {t('Club Directory')}
           </button>
         </div>
       </div>
@@ -90,16 +92,16 @@ export const ClubsPage: React.FC = () => {
           <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <span className="text-[10px] font-mono text-[var(--highlight)] uppercase tracking-wider font-semibold">
-                IIUC 3-Factor Normalization Algorithm
+                {t('IIUC 3-Factor Normalization Algorithm')}
               </span>
-              <h2 className="font-heading font-semibold text-base text-[var(--text)]">Official Annual Rankings</h2>
+              <h2 className="font-heading font-semibold text-base text-[var(--text)]">{t('Official Annual Rankings')}</h2>
               <p className="text-xs font-mono text-[var(--muted)]">
-                Formula: 0.35 × Events + 0.35 × Sponsorship + 0.30 × Feedback.
+                {t('Ranking Formula')}
               </p>
             </div>
 
             <div className="flex items-center gap-1 bg-[var(--surface-alt)] p-1 rounded-[4px] border border-[var(--border)] shrink-0 font-mono text-xs">
-              <span className="text-[var(--muted)] px-2">Year:</span>
+              <span className="text-[var(--muted)] px-2">{t('Academic Year')}:</span>
               {[2026, 2025, 2024].map((yr) => (
                 <button
                   key={yr}
@@ -121,10 +123,10 @@ export const ClubsPage: React.FC = () => {
           <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] overflow-hidden">
             <div className="p-3.5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-alt)]">
               <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
-                Rankings for Academic Year {selectedYear}
+                {t('Annual Standings Table')} ({selectedYear})
               </h3>
               <span className="text-xs font-mono text-[var(--muted)]">
-                {rankings.length} Clubs Evaluated
+                {rankings.length} {t('Clubs Registered')}
               </span>
             </div>
 
@@ -132,13 +134,13 @@ export const ClubsPage: React.FC = () => {
               <table className="dense-table">
                 <thead>
                   <tr>
-                    <th>Rank</th>
-                    <th>Club Name</th>
-                    <th>Department</th>
-                    <th>Events (35%)</th>
-                    <th>Sponsorship (35%)</th>
-                    <th>Feedback (30%)</th>
-                    <th>Final Score</th>
+                    <th>{t('Rank')}</th>
+                    <th>{t('Club Name')}</th>
+                    <th>{t('Department')}</th>
+                    <th>{t('Events (35%)')}</th>
+                    <th>{t('Sponsorship (35%)')}</th>
+                    <th>{t('Feedback (30%)')}</th>
+                    <th>{t('Final Score')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,10 +150,10 @@ export const ClubsPage: React.FC = () => {
                         #{r.rankPosition}
                       </td>
                       <td className="font-medium text-[var(--text)]">
-                        {r.clubName || r.club?.clubName}
+                        {t(r.clubName || r.club?.clubName || '', r.clubName || r.club?.clubName)}
                       </td>
                       <td className="text-xs text-[var(--muted)]">
-                        {r.club?.department?.departmentName || 'General'}
+                        {t(r.club?.department?.departmentName || 'General')}
                       </td>
                       <td className="font-mono text-[var(--muted)]">
                         {Number(r.totalEventsScore).toFixed(1)}
@@ -178,7 +180,7 @@ export const ClubsPage: React.FC = () => {
           {clubs.map((c) => (
             <div
               key={c.id}
-              className="bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] hover:border-[var(--muted)] transition-colors flex flex-col justify-between"
+              className="card-hover-lift bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] flex flex-col justify-between"
             >
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -191,12 +193,12 @@ export const ClubsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <h3 className="font-heading font-semibold text-sm text-[var(--text)]">{c.clubName}</h3>
+                  <h3 className="font-heading font-semibold text-sm text-[var(--text)]">{t(c.clubName, c.clubName)}</h3>
                   <p className="text-xs text-[var(--primary)] font-medium mt-0.5">
-                    {c.department?.departmentName || 'Academic Department'}
+                    {t(c.department?.departmentName || 'Academic Department')}
                   </p>
                   <p className="text-xs text-[var(--muted)] mt-1.5 leading-relaxed line-clamp-2">
-                    {c.description || 'Dedicated to advancing student skills and campus engagement.'}
+                    {c.description ? t(c.description, c.description) : t('Dedicated to advancing student skills and campus engagement.')}
                   </p>
                 </div>
               </div>
@@ -204,9 +206,9 @@ export const ClubsPage: React.FC = () => {
               <div className="mt-4 pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted)] font-mono">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[var(--muted)]" strokeWidth={1.5} />
-                  <span>{c._count?.events ?? 0} campus events</span>
+                  <span>{c._count?.events ?? 0} {t('Campus Events')}</span>
                 </span>
-                <span className="text-[var(--primary)] font-medium">Active Club</span>
+                <span className="text-[var(--primary)] font-medium">{t('Active Campus Clubs')}</span>
               </div>
             </div>
           ))}

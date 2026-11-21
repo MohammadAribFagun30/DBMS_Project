@@ -109,7 +109,7 @@ export const apiAuth = {
 
 // ----------------- Events Services -----------------
 export const apiEvents = {
-  getAll: async (params?: { upcoming?: boolean; status?: string; clubId?: number; venueId?: number; eventType?: string; search?: string }) => {
+  getAll: async (params?: { upcoming?: boolean; status?: string; clubId?: number; venueId?: number; departmentId?: number; eventType?: string; search?: string }) => {
     try {
       const query = new URLSearchParams();
       if (params) {

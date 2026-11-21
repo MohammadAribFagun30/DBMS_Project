@@ -3,6 +3,7 @@ import { EventItem } from '../types';
 import { StatusBadge, TypeBadge } from './Badge';
 import { Calendar, MapPin, Users, Mic, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface EventCardProps {
   event: EventItem;
@@ -18,6 +19,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   isRegistered = false,
 }) => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   const startDate = new Date(event.startTime);
   const formattedDate = startDate.toLocaleDateString('en-US', {
     month: 'short',
@@ -33,7 +35,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   const isCompleted = event.status === 'COMPLETED';
 
   return (
-    <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] hover:border-[var(--muted)] transition-colors flex flex-col overflow-hidden">
+    <div className="card-hover-lift bg-[var(--surface)] rounded-[6px] border border-[var(--border)] flex flex-col overflow-hidden">
       {/* Header with Type and Status */}
       <div className="p-4 pb-2.5">
         <div className="flex items-center justify-between gap-2 mb-2">
@@ -49,11 +51,11 @@ export const EventCard: React.FC<EventCardProps> = ({
         </h3>
 
         <p className="text-xs font-medium text-[var(--primary)] mt-1">
-          {event.club?.clubName || 'Campus Club'}
+          {event.club?.clubName || t('Campus Club')}
         </p>
 
         <p className="text-[var(--muted)] text-xs mt-2 line-clamp-2 leading-relaxed">
-          {event.description || 'No description provided.'}
+          {event.description || t('No description provided.')}
         </p>
       </div>
 
@@ -62,9 +64,9 @@ export const EventCard: React.FC<EventCardProps> = ({
         <div className="mx-4 mb-3 px-2.5 py-1.5 bg-[var(--surface-alt)] rounded-[4px] border border-[var(--border)] flex items-center gap-2 text-xs text-[var(--text)]">
           <Mic className="w-3.5 h-3.5 text-[var(--muted)] shrink-0" strokeWidth={1.5} />
           <div className="truncate">
-            <span className="font-medium block truncate">Speaker: {event.workshop.speakerName}</span>
+            <span className="font-medium block truncate">{t('Speaker:')} {event.workshop.speakerName}</span>
             {event.workshop.prerequisites && (
-              <span className="text-[11px] font-mono text-[var(--muted)] block truncate">Req: {event.workshop.prerequisites}</span>
+              <span className="text-[11px] font-mono text-[var(--muted)] block truncate">{t('Req:')} {event.workshop.prerequisites}</span>
             )}
           </div>
         </div>
@@ -78,7 +80,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <MapPin className="w-3.5 h-3.5 text-[var(--muted)] shrink-0" strokeWidth={1.5} />
-          <span className="truncate">{event.venue?.venueName || 'Campus Venue'}</span>
+          <span className="truncate">{event.venue?.venueName || t('Campus Venue')}</span>
         </div>
       </div>
 
@@ -88,7 +90,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-[var(--muted)] shrink-0" strokeWidth={1.5} />
             <span className="font-medium text-[var(--text)]">{event._count?.registrations ?? 0}</span>
-            <span>registered</span>
+            <span>{t('registered')}</span>
           </div>
 
           {event.averageRating && (
@@ -105,7 +107,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             onClick={() => onSelect(event)}
             className="btn-secondary text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px]"
           >
-            Details
+            {t('Details')}
           </button>
 
           {!isAdmin && onRegister ? (
@@ -121,7 +123,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                   : 'btn-primary'
               }`}
             >
-              {isRegistered ? 'Registered' : isCompleted ? 'Closed' : 'Register'}
+              {isRegistered ? t('Registered') : isCompleted ? t('Closed') : t('Register')}
             </button>
           ) : (
             <button
@@ -129,7 +131,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               onClick={() => onSelect(event)}
               className="btn-primary text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px]"
             >
-              View
+              {t('View')}
             </button>
           )}
         </div>

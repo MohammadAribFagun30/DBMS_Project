@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { EventItem, Club, Venue } from '../types';
-import { apiEvents, apiClubs, apiVenues, apiRegistrations } from '../services/api';
+import { EventItem, Club, Venue, Department } from '../types';
+import { apiEvents, apiClubs, apiVenues, apiDepartments, apiRegistrations } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 import { EventCard } from '../components/EventCard';
 import { EventDetailModal } from '../components/EventDetailModal';
 import { ProposeEventModal } from '../components/ProposeEventModal';
@@ -18,16 +19,19 @@ import {
 
 export const EventsPage: React.FC = () => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
 
   const [events, setEvents] = useState<EventItem[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Filters
   const [search, setSearch] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [selectedClub, setSelectedClub] = useState<string>('');
   const [selectedVenue, setSelectedVenue] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
@@ -44,14 +48,16 @@ export const EventsPage: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [ev, cl, vn] = await Promise.all([
+      const [ev, cl, vn, dp] = await Promise.all([
         apiEvents.getAll(),
         apiClubs.getAll(),
         apiVenues.getAll(),
+        apiDepartments.getAll(),
       ]);
       setEvents(ev);
       setClubs(cl);
       setVenues(vn);
+      setDepartments(dp);
     } catch {
       toast.error('Failed to load events data');
     } finally {
@@ -84,6 +90,14 @@ export const EventsPage: React.FC = () => {
       return false;
     }
 
+    if (selectedDepartment) {
+      const club = clubs.find((c) => c.id === ev.clubId);
+      const evDeptId = ev.club?.departmentId || club?.departmentId;
+      if (String(evDeptId) !== selectedDepartment) {
+        return false;
+      }
+    }
+
     if (selectedClub && String(ev.clubId) !== selectedClub) {
       return false;
     }
@@ -98,6 +112,10 @@ export const EventsPage: React.FC = () => {
 
     return true;
   });
+
+  const availableClubs = selectedDepartment
+    ? clubs.filter((c) => String(c.departmentId) === selectedDepartment)
+    : clubs;
 
   const eventTypes = ['ALL', 'WORKSHOP', 'HACKATHON', 'SEMINAR', 'COMPETITION', 'SOCIAL'];
 
@@ -131,15 +149,15 @@ export const EventsPage: React.FC = () => {
 
       {/* Search & Filter Toolbar */}
       <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           {/* Search Box */}
-          <div className="relative md:col-span-2">
-            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">Search Keywords</label>
+          <div className="relative sm:col-span-2 lg:col-span-2">
+            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">{t('Search Keywords')}</label>
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
               <input
                 type="text"
-                placeholder="Search by title, speaker, keyword..."
+                placeholder={t('Search by title, speaker, keyword...')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-8 pr-3 py-1.5 text-xs font-sans text-[var(--text)] placeholder:text-[var(--muted)]"
@@ -147,16 +165,36 @@ export const EventsPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Department Dropdown */}
+          <div>
+            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">{t('Academic Department')}</label>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => {
+                setSelectedDepartment(e.target.value);
+                setSelectedClub('');
+              }}
+              className="w-full px-2.5 py-1.5 text-xs text-[var(--text)]"
+            >
+              <option value="">{t('All Departments')}</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.departmentName}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Club Dropdown */}
           <div>
-            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">Organizing Club</label>
+            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">{t('Organizing Club')}</label>
             <select
               value={selectedClub}
               onChange={(e) => setSelectedClub(e.target.value)}
               className="w-full px-2.5 py-1.5 text-xs text-[var(--text)]"
             >
-              <option value="">All Clubs</option>
-              {clubs.map((c) => (
+              <option value="">{t('All Clubs')}</option>
+              {availableClubs.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.clubName}
                 </option>
@@ -166,16 +204,16 @@ export const EventsPage: React.FC = () => {
 
           {/* Status Dropdown */}
           <div>
-            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">Status</label>
+            <label className="block text-[11px] font-medium text-[var(--text)] mb-1">{t('Status')}</label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-2.5 py-1.5 text-xs text-[var(--text)]"
             >
-              <option value="ALL">All Status</option>
-              <option value="APPROVED">Approved</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="PENDING">Pending</option>
+              <option value="ALL">{t('All Status')}</option>
+              <option value="APPROVED">{t('Approved')}</option>
+              <option value="COMPLETED">{t('Completed')}</option>
+              <option value="PENDING">{t('Pending')}</option>
             </select>
           </div>
         </div>
@@ -201,19 +239,20 @@ export const EventsPage: React.FC = () => {
             </button>
           ))}
 
-          {(search || selectedType !== 'ALL' || selectedClub || selectedVenue || selectedStatus !== 'ALL') && (
+          {(search || selectedType !== 'ALL' || selectedDepartment || selectedClub || selectedVenue || selectedStatus !== 'ALL') && (
             <button
               type="button"
               onClick={() => {
                 setSearch('');
                 setSelectedType('ALL');
+                setSelectedDepartment('');
                 setSelectedClub('');
                 setSelectedVenue('');
                 setSelectedStatus('ALL');
               }}
               className="text-xs text-[#9B3A2D] hover:underline ml-auto flex items-center gap-1 font-mono cursor-pointer"
             >
-              <X className="w-3 h-3" strokeWidth={1.5} /> Reset Filters
+              <X className="w-3 h-3" strokeWidth={1.5} /> {t('Reset Filters')}
             </button>
           )}
         </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface BadgeProps {
   status: string;
@@ -6,6 +7,7 @@ interface BadgeProps {
 }
 
 export const StatusBadge: React.FC<BadgeProps> = ({ status }) => {
+  const { t } = useLanguage();
   const s = status.toUpperCase();
   
   // Status colors (low saturation) per specification: 4px radius, 12px text
@@ -23,28 +25,29 @@ export const StatusBadge: React.FC<BadgeProps> = ({ status }) => {
 
   return (
     <span className={`inline-flex items-center px-2 py-0.5 text-[12px] font-medium rounded-[4px] border ${colorClass} tracking-wide`}>
-      {status}
+      {t(s, status)}
     </span>
   );
 };
 
 export const TypeBadge: React.FC<{ type?: string | null }> = ({ type }) => {
+  const { t } = useLanguage();
   if (!type) return null;
-  const t = type.toUpperCase();
+  const upper = type.toUpperCase();
   
   // Subtle low-saturation border and surface for type badges
   let colorClass = 'text-[var(--text)] bg-[var(--surface-alt)] border-[var(--border)]';
-  if (t === 'WORKSHOP') {
+  if (upper === 'WORKSHOP') {
     colorClass = 'text-[#35567A] bg-[#E1E9F2] dark:text-[#86A9D1] dark:bg-[#1A2433] border-transparent';
-  } else if (t === 'SEMINAR') {
+  } else if (upper === 'SEMINAR') {
     colorClass = 'text-[#2F6B4F] bg-[#E4EFE8] dark:text-[#7CC09E] dark:bg-[#1C2E25] border-transparent';
-  } else if (t === 'HACKATHON' || t === 'COMPETITION') {
+  } else if (upper === 'HACKATHON' || upper === 'COMPETITION') {
     colorClass = 'text-[#8A6414] bg-[#F4EBD3] dark:text-[#D9AE5B] dark:bg-[#33291A] border-transparent';
   }
 
   return (
     <span className={`inline-flex items-center px-2 py-0.5 text-[11px] font-mono uppercase tracking-wider rounded-[4px] border ${colorClass}`}>
-      {type}
+      {t(upper, type)}
     </span>
   );
 };

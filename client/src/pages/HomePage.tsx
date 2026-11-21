@@ -13,14 +13,15 @@ import {
   Trophy,
   Users,
   Award,
-  Calendar,
   DollarSign,
   PlusCircle,
   ChevronRight
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const HomePage: React.FC = () => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
 
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
@@ -60,23 +61,23 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-8 space-y-10">
-      {/* Institutional Left-Aligned Header (No Centered Big Hero, No Gradients) */}
+      {/* Institutional Left-Aligned Header */}
       <section className="bg-[var(--surface)] p-6 sm:p-8 rounded-[6px] border border-[var(--border)]">
         <div className="max-w-2xl space-y-3">
           <span className="text-xs font-mono uppercase tracking-wider text-[var(--primary)] font-semibold">
-            IIUC Central Campus Management
+            {t('IIUC Central Campus Management')}
           </span>
           <h1 className="font-heading font-semibold text-2xl sm:text-3xl text-[var(--text)] tracking-tight">
-            Club Activities, Technical Workshops & Verified Passes
+            {t('Club Activities, Technical Workshops & Verified Passes')}
           </h1>
           <p className="text-[var(--muted)] text-sm leading-relaxed">
-            International Islamic University Chittagong centralized platform for official club events, workshops, digital event entry passes, verified certificates, and annual 3-factor club performance rankings.
+            {t('International Islamic University Chittagong centralized platform for official club events, workshops, digital event entry passes, verified certificates, and annual 3-factor club performance rankings.')}
           </p>
 
           <div className="flex flex-wrap items-center gap-2.5 pt-2">
             <Link to="/events" className="btn-primary text-xs py-2 px-4">
               <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
-              Explore All Events
+              {t('Explore All Events')}
             </Link>
 
             {isAdmin ? (
@@ -86,12 +87,12 @@ export const HomePage: React.FC = () => {
                 className="btn-secondary text-xs py-2 px-4"
               >
                 <PlusCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
-                Create New Event
+                {t('Create New Event')}
               </button>
             ) : (
               <Link to="/clubs" className="btn-secondary text-xs py-2 px-4">
                 <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
-                View Club Standings
+                {t('View Club Standings')}
               </Link>
             )}
           </div>
@@ -106,7 +107,7 @@ export const HomePage: React.FC = () => {
           </div>
           <div>
             <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalEvents ?? 42}</p>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">Campus Events</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Campus Events')}</span>
           </div>
         </div>
 
@@ -116,7 +117,7 @@ export const HomePage: React.FC = () => {
           </div>
           <div>
             <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalRegistrations ?? 1240}</p>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">Issued Passes</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Issued Passes')}</span>
           </div>
         </div>
 
@@ -128,7 +129,7 @@ export const HomePage: React.FC = () => {
             <p className="font-mono text-xl font-semibold text-[var(--text)]">
               ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 325000).toLocaleString()}
             </p>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">Sponsorships</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Sponsorships')}</span>
           </div>
         </div>
 
@@ -138,7 +139,7 @@ export const HomePage: React.FC = () => {
           </div>
           <div>
             <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalCertificates ?? 890}</p>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">Verified Certs</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Verified Certs')}</span>
           </div>
         </div>
       </section>
@@ -147,14 +148,14 @@ export const HomePage: React.FC = () => {
       <section className="space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
           <div>
-            <h2 className="font-heading font-semibold text-lg text-[var(--text)]">Featured Campus Events</h2>
-            <p className="text-xs text-[var(--muted)]">Register online to generate your digital verification pass.</p>
+            <h2 className="font-heading font-semibold text-lg text-[var(--text)]">{t('Featured Campus Events')}</h2>
+            <p className="text-xs text-[var(--muted)]">{t('Register online to generate your digital verification pass.')}</p>
           </div>
           <Link
             to="/events"
             className="text-xs font-mono text-[var(--primary)] hover:underline inline-flex items-center gap-1"
           >
-            View all events <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+            {t('View all events')} <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
           </Link>
         </div>
 
@@ -175,13 +176,13 @@ export const HomePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border)]">
           <div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--highlight)] font-semibold">
-              IIUC 3-Factor Normalization Algorithm
+              {t('IIUC 3-Factor Normalization Algorithm')}
             </span>
             <h2 className="font-heading font-semibold text-base sm:text-lg text-[var(--text)]">
-              Top Ranked Clubs (2026 Academic Year)
+              {t('Top Ranked Clubs (2026 Academic Year)')}
             </h2>
             <p className="text-xs text-[var(--muted)] font-mono mt-0.5">
-              Formula: 35% Events Weight + 35% Sponsorship Weight + 30% Student Feedback
+              {t('Formula: 35% Events Weight + 35% Sponsorship Weight + 30% Student Feedback')}
             </p>
           </div>
 
@@ -189,7 +190,7 @@ export const HomePage: React.FC = () => {
             to="/clubs"
             className="btn-secondary text-xs py-1.5 px-3 self-start sm:self-auto"
           >
-            View Full Standings
+            {t('View Full Standings')}
           </Link>
         </div>
 
@@ -201,33 +202,33 @@ export const HomePage: React.FC = () => {
             >
               <div className="flex items-center justify-between">
                 <span className="font-mono font-semibold text-xs text-[var(--text)]">
-                  Rank #{rank.rankPosition}
+                  {t('Rank #')}{rank.rankPosition}
                 </span>
                 <span className="text-xs font-mono text-[var(--primary)] font-semibold">
-                  Score: {rank.finalScore} / 100
+                  {t('Score:')} {rank.finalScore} / 100
                 </span>
               </div>
 
               <div>
                 <h3 className="font-heading font-semibold text-sm text-[var(--text)]">
-                  {rank.clubName || rank.club?.clubName}
+                  {t(rank.clubName || rank.club?.clubName || '', rank.clubName || rank.club?.clubName)}
                 </h3>
                 <p className="text-xs text-[var(--muted)]">
-                  {rank.club?.department?.departmentName || 'Academic Department'}
+                  {t(rank.club?.department?.departmentName || 'Academic Department')}
                 </p>
               </div>
 
               <div className="space-y-1 pt-2 border-t border-[var(--border)] text-xs font-mono">
                 <div className="flex justify-between text-[var(--muted)]">
-                  <span>Events (35%)</span>
+                  <span>{t('Events (35%)')}</span>
                   <span className="text-[var(--text)]">{rank.totalEventsScore}</span>
                 </div>
                 <div className="flex justify-between text-[var(--muted)]">
-                  <span>Sponsorship (35%)</span>
+                  <span>{t('Sponsorship (35%)')}</span>
                   <span className="text-[var(--text)]">{rank.sponsorshipScore}</span>
                 </div>
                 <div className="flex justify-between text-[var(--muted)]">
-                  <span>Feedback (30%)</span>
+                  <span>{t('Feedback (30%)')}</span>
                   <span className="text-[var(--text)]">{rank.feedbackScore}</span>
                 </div>
               </div>
@@ -240,9 +241,9 @@ export const HomePage: React.FC = () => {
       <section className="space-y-4">
         <div className="pb-2 border-b border-[var(--border)]">
           <h2 className="font-heading font-semibold text-lg text-[var(--text)]">
-            Standard Campus Event Procedure
+            {t('Standard Campus Event Procedure')}
           </h2>
-          <p className="text-xs text-[var(--muted)]">Institutional event workflow from proposal to verification.</p>
+          <p className="text-xs text-[var(--muted)]">{t('Institutional event workflow from proposal to verification.')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -250,9 +251,9 @@ export const HomePage: React.FC = () => {
             <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
               01
             </span>
-            <h3 className="font-medium text-xs text-[var(--text)]">Publish & Schedule</h3>
+            <h3 className="font-medium text-xs text-[var(--text)]">{t('Publish & Schedule')}</h3>
             <p className="text-xs text-[var(--muted)] leading-relaxed">
-              Official university clubs submit proposals for review by the campus administration.
+              {t('Official university clubs submit proposals for review by the campus administration.')}
             </p>
           </div>
 
@@ -260,9 +261,9 @@ export const HomePage: React.FC = () => {
             <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
               02
             </span>
-            <h3 className="font-medium text-xs text-[var(--text)]">Pass Generation</h3>
+            <h3 className="font-medium text-xs text-[var(--text)]">{t('Pass Generation')}</h3>
             <p className="text-xs text-[var(--muted)] leading-relaxed">
-              Enrolled students register online to acquire a verified pass identifier (<code className="font-mono text-[11px] text-[var(--primary)]">REG-ID</code>).
+              {t('Enrolled students register online to acquire a verified pass identifier (REG-ID).')}
             </p>
           </div>
 
@@ -270,9 +271,9 @@ export const HomePage: React.FC = () => {
             <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
               03
             </span>
-            <h3 className="font-medium text-xs text-[var(--text)]">Venue Attendance</h3>
+            <h3 className="font-medium text-xs text-[var(--text)]">{t('Venue Attendance')}</h3>
             <p className="text-xs text-[var(--muted)] leading-relaxed">
-              Attendance check-in desk confirms the pass, granting access and eligibility for certificates.
+              {t('Attendance check-in desk confirms the pass, granting access and eligibility for certificates.')}
             </p>
           </div>
 
@@ -280,9 +281,9 @@ export const HomePage: React.FC = () => {
             <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
               04
             </span>
-            <h3 className="font-medium text-xs text-[var(--text)]">Feedback & Ranking</h3>
+            <h3 className="font-medium text-xs text-[var(--text)]">{t('Feedback & Ranking')}</h3>
             <p className="text-xs text-[var(--muted)] leading-relaxed">
-              Attendees submit ratings, which compute directly into the official 3-factor annual club ranking.
+              {t('Attendees submit ratings, which compute directly into the official 3-factor annual club ranking.')}
             </p>
           </div>
         </div>
