@@ -325,7 +325,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (language === 'BN') {
       return bnTranslations[key] || fallback || key;
     }
-    return fallback || key;
+    return key;
   };
 
   return (

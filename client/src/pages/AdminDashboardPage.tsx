@@ -32,6 +32,7 @@ import {
   User as UserIcon,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   ShieldCheck,
   CheckCircle,
   Clock,
@@ -295,37 +296,49 @@ export const AdminDashboardPage: React.FC = () => {
         />
       )}
 
-      {/* LEFT SIDEBAR - Expanded (w-64) or Collapsed Rail (w-[72px]) */}
+      {/* LEFT SIDEBAR - Expanded (w-64) or Collapsed Rail (w-[72px]) Glassmorphism */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen bg-[var(--surface)] border-r border-[var(--border)] flex flex-col justify-between transition-all shrink-0 overflow-visible ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen backdrop-blur-2xl bg-white/70 dark:bg-[#1D1C17]/80 border-r border-white/60 dark:border-white/10 shadow-[4px_0_30px_rgba(59,36,24,0.05)] dark:shadow-[4px_0_30px_rgba(0,0,0,0.4)] flex flex-col justify-between transition-all shrink-0 overflow-visible ${
           sidebarOpenMobile ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         } ${sidebarOpen ? 'lg:w-64' : 'lg:w-[72px]'}`}
       >
         {sidebarOpen ? (
-          /* EXPANDED FULL SIDEBAR VIEW */
+          /* EXPANDED FULL GLASS SIDEBAR VIEW */
           <div className="w-64 flex flex-col justify-between h-full">
             <div className="p-4 space-y-4">
-              {/* Top Logo */}
-              <div className="flex items-center justify-between px-2 pt-1">
-                <Link to="/home" className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center">
+              {/* Top Logo & Collapse Toggle (like in reference pic) */}
+              <div className="flex items-center justify-between px-1 pt-1">
+                <Link to="/home" className="flex items-center gap-2.5 group">
+                  <div className="w-8 h-8 rounded-[8px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center shadow-[0_2px_8px_rgba(59,36,24,0.15)]">
                     <Bookmark className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <span className="font-heading font-semibold text-base tracking-tight text-[var(--text)]">
+                    <span className="font-heading font-semibold text-base tracking-tight text-[var(--text)] block leading-tight">
                       ClubVerse
                     </span>
-                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--muted)] -mt-0.5">
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--muted)]">
                       {isBn ? 'আইআইইউসি অ্যাডমিন' : 'IIUC Admin'}
                     </span>
                   </div>
                 </Link>
+
+                {/* Mobile close button */}
                 <button
                   type="button"
                   onClick={() => setSidebarOpenMobile(false)}
-                  className="lg:hidden text-[var(--muted)] hover:text-[var(--text)] p-1"
+                  className="lg:hidden text-[var(--muted)] hover:text-[var(--text)] p-1 cursor-pointer"
                 >
                   <X className="w-4 h-4" strokeWidth={1.5} />
+                </button>
+
+                {/* Desktop Glass Collapse Toggle (< Button) */}
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(false)}
+                  className="hidden lg:flex w-6 h-6 rounded-full bg-white/80 hover:bg-white dark:bg-white/10 dark:hover:bg-white/20 border border-white/80 dark:border-white/10 shadow-xs items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer"
+                  title="Collapse sidebar"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </button>
               </div>
 
@@ -338,10 +351,10 @@ export const AdminDashboardPage: React.FC = () => {
                     setActiveTab('DASHBOARD');
                     setSidebarOpenMobile(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs font-medium transition-colors cursor-pointer ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                     activeTab === 'DASHBOARD'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_4px_14px_rgba(59,36,24,0.07)] dark:shadow-none border border-white/90 dark:border-white/10'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" strokeWidth={1.5} />
@@ -353,31 +366,31 @@ export const AdminDashboardPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setWorkspaceOpen(!workspaceOpen)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5 transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5">
                       <Folder className="w-4 h-4" strokeWidth={1.5} />
                       <span>{t('Workspace')}</span>
                     </div>
                     {workspaceOpen ? (
-                      <ChevronDown className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <ChevronDown className="w-3.5 h-3.5 text-[var(--muted)]" strokeWidth={1.5} />
                     ) : (
-                      <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <ChevronRight className="w-3.5 h-3.5 text-[var(--muted)]" strokeWidth={1.5} />
                     )}
                   </button>
 
                   {workspaceOpen && (
-                    <div className="pl-6 pr-1 py-1 space-y-0.5 border-l border-[var(--border)] ml-4 mt-1">
+                    <div className="pl-5 pr-1 py-1 space-y-0.5 border-l border-white/60 dark:border-white/10 ml-4 mt-1">
                       <button
                         type="button"
                         onClick={() => {
                           setActiveTab('EVENTS_WORKSHOPS');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'EVENTS_WORKSHOPS'
-                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -397,10 +410,10 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('CLUBS_RANKINGS');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'CLUBS_RANKINGS'
-                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
                         }`}
                       >
                         <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -413,10 +426,10 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('ATTENDANCE');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'ATTENDANCE'
-                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
                         }`}
                       >
                         <CheckCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -429,10 +442,10 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('SPONSORSHIP');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'SPONSORSHIP'
-                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
                         }`}
                       >
                         <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -445,10 +458,10 @@ export const AdminDashboardPage: React.FC = () => {
                           setActiveTab('LOGS');
                           setSidebarOpenMobile(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'LOGS'
-                            ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
                         }`}
                       >
                         <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -465,10 +478,10 @@ export const AdminDashboardPage: React.FC = () => {
                     setActiveTab('PROFILE');
                     setSidebarOpenMobile(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs font-medium transition-colors cursor-pointer ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                     activeTab === 'PROFILE'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_4px_14px_rgba(59,36,24,0.07)] dark:shadow-none border border-white/90 dark:border-white/10'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                   }`}
                 >
                   <UserIcon className="w-4 h-4" strokeWidth={1.5} />
@@ -477,59 +490,88 @@ export const AdminDashboardPage: React.FC = () => {
               </nav>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="p-3 border-t border-[var(--border)] space-y-1">
+            {/* Bottom Glass User Profile & Actions (matching bottom of reference pic) */}
+            <div className="p-3 border-t border-white/60 dark:border-white/10 space-y-2">
+              {/* User Profile Card */}
+              <div className="p-2 rounded-[10px] bg-white/50 dark:bg-white/5 border border-white/70 dark:border-white/10 shadow-xs flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-[var(--primary)] text-[var(--primary-contrast)] font-mono text-[11px] font-semibold flex items-center justify-center shrink-0 shadow-xs">
+                    AD
+                  </div>
+                  <div className="min-w-0 text-left">
+                    <p className="text-[11px] font-semibold text-[var(--text)] truncate leading-tight">
+                      {user?.fullName || 'Administrator'}
+                    </p>
+                    <p className="text-[9px] font-mono text-[var(--muted)] truncate">
+                      {user?.email || 'admin@test.com'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="w-6 h-6 rounded-[6px] hover:bg-white/80 dark:hover:bg-white/10 text-[#9B3A2D] flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+                </button>
+              </div>
+
+              {/* Public Portal Link */}
               <Link
                 to="/home"
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] rounded-[4px] hover:bg-[var(--surface-alt)] transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] rounded-[8px] hover:bg-white/50 dark:hover:bg-white/5 transition-all"
               >
                 <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
                 <span>{t('Campus Portal')}</span>
               </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  navigate('/login');
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-[#9B3A2D] hover:bg-[var(--surface-alt)] rounded-[4px] transition-colors cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Sign Out')}</span>
-              </button>
             </div>
           </div>
         ) : (
-          /* COLLAPSED MINI-RAIL VIEW */
+          /* COLLAPSED MINI-RAIL GLASS VIEW */
           <div className="w-[72px] flex flex-col justify-between h-full py-3 items-center">
-            {/* Top Logo */}
-            <div className="pt-1">
+            {/* Top Logo & Expand button */}
+            <div className="pt-1 flex flex-col items-center gap-2">
               <Link
                 to="/home"
-                className="w-8 h-8 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center"
+                className="w-8 h-8 rounded-[8px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center shadow-[0_2px_8px_rgba(59,36,24,0.15)]"
                 title="ClubVerse IIUC Admin"
               >
                 <Bookmark className="w-4 h-4" strokeWidth={1.5} />
               </Link>
+
+              {/* Expand Toggle button */}
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="w-6 h-6 rounded-full bg-white/80 hover:bg-white dark:bg-white/10 dark:hover:bg-white/20 border border-white/80 dark:border-white/10 shadow-xs flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+              </button>
             </div>
 
-            {/* Nav Icons Rail with Clean Tooltips */}
-            <nav className="space-y-2 pt-4 w-full flex flex-col items-center">
+            {/* Nav Icons Rail with Glass Tooltips */}
+            <nav className="space-y-2 pt-2 w-full flex flex-col items-center">
               {/* Dashboard Icon */}
               <div className="relative group flex justify-center w-full">
                 <button
                   type="button"
                   onClick={() => setActiveTab('DASHBOARD')}
-                  className={`w-9 h-9 rounded-[6px] flex items-center justify-center transition-colors cursor-pointer ${
+                  className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-all cursor-pointer ${
                     activeTab === 'DASHBOARD'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] shadow-[0_4px_14px_rgba(59,36,24,0.08)] border border-white/90 dark:border-white/10'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" strokeWidth={1.5} />
                 </button>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="bg-[var(--surface)] text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[4px] border border-[var(--border)] whitespace-nowrap">
+                  <span className="backdrop-blur-md bg-white/95 dark:bg-[#1D1C17]/95 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/80 dark:border-white/10 shadow-md whitespace-nowrap">
                     {t('Dashboard')}
                   </span>
                 </div>
@@ -542,10 +584,10 @@ export const AdminDashboardPage: React.FC = () => {
                   onClick={() => {
                     if (!isWorkspaceTab) setActiveTab('EVENTS_WORKSHOPS');
                   }}
-                  className={`w-9 h-9 rounded-[6px] flex items-center justify-center transition-colors cursor-pointer relative ${
+                  className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-all cursor-pointer relative ${
                     isWorkspaceTab
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] shadow-[0_4px_14px_rgba(59,36,24,0.08)] border border-white/90 dark:border-white/10'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                   }`}
                 >
                   <Folder className="w-4 h-4" strokeWidth={1.5} />
@@ -554,7 +596,7 @@ export const AdminDashboardPage: React.FC = () => {
                   )}
                 </button>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="bg-[var(--surface)] text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[4px] border border-[var(--border)] whitespace-nowrap">
+                  <span className="backdrop-blur-md bg-white/95 dark:bg-[#1D1C17]/95 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/80 dark:border-white/10 shadow-md whitespace-nowrap">
                     {t('Workspace')}
                   </span>
                 </div>
@@ -565,16 +607,16 @@ export const AdminDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('PROFILE')}
-                  className={`w-9 h-9 rounded-[6px] flex items-center justify-center transition-colors cursor-pointer ${
+                  className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-all cursor-pointer ${
                     activeTab === 'PROFILE'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] shadow-[0_4px_14px_rgba(59,36,24,0.08)] border border-white/90 dark:border-white/10'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                   }`}
                 >
                   <UserIcon className="w-4 h-4" strokeWidth={1.5} />
                 </button>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="bg-[var(--surface)] text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[4px] border border-[var(--border)] whitespace-nowrap">
+                  <span className="backdrop-blur-md bg-white/95 dark:bg-[#1D1C17]/95 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/80 dark:border-white/10 shadow-md whitespace-nowrap">
                     {t('Profile')}
                   </span>
                 </div>
@@ -582,10 +624,10 @@ export const AdminDashboardPage: React.FC = () => {
             </nav>
 
             {/* Bottom Actions */}
-            <div className="space-y-1 flex flex-col items-center border-t border-[var(--border)] pt-2 w-full">
+            <div className="space-y-1 flex flex-col items-center border-t border-white/60 dark:border-white/10 pt-2 w-full">
               <Link
                 to="/home"
-                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]"
+                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5 transition-all"
                 title="Public Campus Portal"
               >
                 <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -596,7 +638,7 @@ export const AdminDashboardPage: React.FC = () => {
                   logout();
                   navigate('/login');
                 }}
-                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-[#9B3A2D] hover:bg-[var(--surface-alt)] cursor-pointer"
+                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[#9B3A2D] hover:bg-white/50 dark:hover:bg-white/5 cursor-pointer transition-all"
                 title="Sign Out"
               >
                 <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -608,8 +650,8 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* TOP BAR */}
-        <header className="sticky top-0 z-30 h-14 bg-[var(--surface)] border-b border-[var(--border)] flex items-center justify-between gap-6 px-4 sm:px-6">
+        {/* TOP BAR - Frosted Glass */}
+        <header className="sticky top-0 z-30 h-14 backdrop-blur-2xl bg-white/65 dark:bg-[#1D1C17]/75 border-b border-white/60 dark:border-white/10 flex items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
             {/* Toggle Sidebar Button */}
             <button
@@ -621,7 +663,7 @@ export const AdminDashboardPage: React.FC = () => {
                   setSidebarOpen(!sidebarOpen);
                 }
               }}
-              className="w-8 h-8 rounded-[6px] border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="w-8 h-8 rounded-[8px] border border-white/70 dark:border-white/10 bg-white/70 dark:bg-white/10 hover:bg-white text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs"
               title="Toggle sidebar"
             >
               <Menu className="w-4 h-4" strokeWidth={1.5} />
@@ -646,7 +688,7 @@ export const AdminDashboardPage: React.FC = () => {
             <ThemeLanguageToggle />
 
             {/* Admin User Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono shrink-0">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-white/60 dark:bg-white/10 border border-white/70 dark:border-white/10 text-xs font-mono shrink-0 shadow-xs">
               <span className="text-[var(--primary)] font-semibold">AD</span>
               <span className="text-[var(--muted)]">•</span>
               <span className="text-[var(--text)] truncate max-w-[120px] sm:max-w-none">
@@ -660,14 +702,14 @@ export const AdminDashboardPage: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 space-y-6 max-w-[1100px] w-full">
           {/* Workspace Sub-Navigation Toolbar (Shown when inside a Workspace tab) */}
           {isWorkspaceTab && (
-            <div className="flex items-center gap-1.5 p-1 bg-[var(--surface-alt)] border border-[var(--border)] rounded-[6px] overflow-x-auto">
+            <div className="flex items-center gap-1.5 p-1 backdrop-blur-md bg-white/60 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-[10px] shadow-[0_2px_12px_rgba(59,36,24,0.04)] overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   activeTab === 'EVENTS_WORKSHOPS'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                 }`}
               >
                 <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -677,10 +719,10 @@ export const AdminDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('CLUBS_RANKINGS')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   activeTab === 'CLUBS_RANKINGS'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                 }`}
               >
                 <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -690,10 +732,10 @@ export const AdminDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('ATTENDANCE')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   activeTab === 'ATTENDANCE'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                 }`}
               >
                 <CheckCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -703,10 +745,10 @@ export const AdminDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('SPONSORSHIP')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   activeTab === 'SPONSORSHIP'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                 }`}
               >
                 <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -716,10 +758,10 @@ export const AdminDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('LOGS')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   activeTab === 'LOGS'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
                 }`}
               >
                 <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -746,16 +788,16 @@ export const AdminDashboardPage: React.FC = () => {
               title={isBn ? "ড্যাশবোর্ড রিফ্রেশ করুন" : "Refresh dashboard"}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? 'animate-spin text-[var(--primary)]' : ''}`} strokeWidth={1.5} />
-              <span>{isRefreshing ? (isBn ? 'রিফ্রেশ হচ্ছে...' : 'Refreshing...') : t('Refresh', 'রিফ্রেশ')}</span>
+              <span>{isRefreshing ? (isBn ? 'রিফ্রেশ হচ্ছে...' : 'Refreshing...') : t('Refresh')}</span>
             </button>
           </div>
 
           {/* TAB VIEW 1: DASHBOARD OVERVIEW */}
           {activeTab === 'DASHBOARD' && (
             <div className="space-y-6">
-              {/* 4 Metric Cards - Dense, 6px radius, no box-shadow */}
+              {/* 4 Metric Cards - Dense, 6px radius, with suitable bluish shadow */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Calendar className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -769,7 +811,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Users className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -783,7 +825,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <DollarSign className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -797,7 +839,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -815,7 +857,7 @@ export const AdminDashboardPage: React.FC = () => {
               {/* Two Column Split: Pending Approvals Queue & Live Audit Logs */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Pending Approvals Queue */}
-                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-4 space-y-3">
+                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] card-blue-shadow-static p-4 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-[var(--highlight)]" strokeWidth={1.5} />
@@ -857,14 +899,14 @@ export const AdminDashboardPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleUpdateStatus(event.id, 'APPROVED')}
-                              className="px-2 py-0.5 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] font-medium text-[11px]"
+                              className="px-2.5 py-1 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] font-medium text-[11px] btn-approve-hover cursor-pointer"
                             >
                               {t('Approve')}
                             </button>
                             <button
                               type="button"
                               onClick={() => handleUpdateStatus(event.id, 'REJECTED')}
-                              className="px-2 py-0.5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] text-[#9B3A2D] font-medium text-[11px]"
+                              className="px-2.5 py-1 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] text-[#9B3A2D] font-medium text-[11px] btn-reject-hover cursor-pointer"
                             >
                               {t('Reject')}
                             </button>
@@ -876,7 +918,7 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
 
                 {/* Recent Audit Activity */}
-                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-4 space-y-3">
+                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] card-blue-shadow-static p-4 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                     <div className="flex items-center gap-2">
                       <Activity className="w-4 h-4 text-[var(--muted)]" strokeWidth={1.5} />
@@ -918,7 +960,7 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
 
               {/* Annual Rankings Preview Table */}
-              <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-4 space-y-3">
+              <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] card-blue-shadow-static p-4 space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2">
                     <Trophy className="w-4 h-4 text-[var(--highlight)]" strokeWidth={1.5} />
@@ -976,7 +1018,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 2: EVENTS & WORKSHOPS CONSOLE */}
           {activeTab === 'EVENTS_WORKSHOPS' && (
             <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
                     <h3 className="font-heading font-semibold text-base text-[var(--text)]">
@@ -1071,7 +1113,7 @@ export const AdminDashboardPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleUpdateStatus(ev.id, 'APPROVED')}
-                                    className="px-2 py-0.5 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] text-xs font-medium cursor-pointer"
+                                    className="px-2.5 py-1 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] text-xs font-medium btn-approve-hover cursor-pointer"
                                   >
                                     {t('Approve')}
                                   </button>
@@ -1080,7 +1122,7 @@ export const AdminDashboardPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleUpdateStatus(ev.id, 'REJECTED')}
-                                    className="px-2 py-0.5 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[#9B3A2D] text-xs font-medium cursor-pointer"
+                                    className="px-2.5 py-1 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[#9B3A2D] text-xs font-medium btn-reject-hover cursor-pointer"
                                   >
                                     {t('Reject')}
                                   </button>
@@ -1109,7 +1151,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 3: ATTENDANCE & PASS CHECK-IN */}
           {activeTab === 'ATTENDANCE' && (
             <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="font-heading font-semibold text-base text-[var(--text)]">
@@ -1159,7 +1201,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 4: SPONSORSHIP LEDGER */}
           {activeTab === 'SPONSORSHIP' && (
             <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
                 <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                   {t('Record Corporate Sponsorship')}
                 </h3>
@@ -1245,7 +1287,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 5: CLUBS & RANKINGS */}
           {activeTab === 'CLUBS_RANKINGS' && (
             <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-4">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="font-heading font-semibold text-base text-[var(--text)]">
@@ -1322,7 +1364,7 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
 
               {/* Campus Clubs Directory */}
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-[var(--muted)]" strokeWidth={1.5} />
@@ -1370,7 +1412,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 6: AUDIT LOGS */}
           {activeTab === 'LOGS' && (
             <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3">
+              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-3">
                 <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                   {t('Platform Security & Audit Trail')}
                 </h3>
@@ -1407,7 +1449,7 @@ export const AdminDashboardPage: React.FC = () => {
 
           {/* TAB VIEW 7: PROFILE */}
           {activeTab === 'PROFILE' && (
-            <div className="max-w-xl bg-[var(--surface)] p-5 rounded-[6px] border border-[var(--border)] space-y-4">
+            <div className="max-w-xl bg-[var(--surface)] p-5 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] font-mono font-semibold text-sm flex items-center justify-center">
                   AD

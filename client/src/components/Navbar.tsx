@@ -67,9 +67,9 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)]">
       <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-14 gap-4">
           {/* Logo */}
-          <Link to={isWelcomePage ? "/" : "/home"} className="flex items-center gap-2.5">
+          <Link to={isWelcomePage ? "/" : "/home"} className="flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] flex items-center justify-center">
               <Bookmark className="w-4 h-4" strokeWidth={1.5} />
             </div>
@@ -88,7 +88,7 @@ export const Navbar: React.FC = () => {
             <nav className="hidden md:flex items-center">
               <Link
                 to="/"
-                className="px-3 py-1.5 rounded-[6px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)] transition-colors"
+                className="px-3 py-1.5 rounded-[6px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--border)] transition-colors whitespace-nowrap"
               >
                 {t('Home')}
               </Link>
@@ -97,7 +97,7 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Nav for Other Pages */}
           {!isWelcomePage && !isAuthPage && (
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1.5 shrink-0">
               {navLinks.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.to;
@@ -105,7 +105,7 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={item.to}
                     to={item.to}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
                       isActive
                         ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
                         : item.highlight
@@ -113,8 +113,8 @@ export const Navbar: React.FC = () => {
                         : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    {item.label}
+                    <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />
+                    <span>{item.label}</span>
                     {item.highlight && (
                       <span className="bg-[var(--primary)] text-[var(--primary-contrast)] text-[10px] font-mono px-1 py-0.2 rounded-[4px]">
                         Admin
@@ -127,7 +127,7 @@ export const Navbar: React.FC = () => {
           )}
 
           {/* User actions / Auth */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2.5 shrink-0 ml-4">
             {/* Notifications Bell */}
             {showUserSession && (
               <div className="relative">
