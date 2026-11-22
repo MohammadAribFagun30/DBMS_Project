@@ -268,6 +268,23 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const getActiveTabName = () => {
+    switch (activeTab) {
+      case 'EVENTS_WORKSHOPS':
+        return t('Events & Workshops');
+      case 'CLUBS_RANKINGS':
+        return t('Clubs & Rankings');
+      case 'ATTENDANCE':
+        return t('Attendance');
+      case 'SPONSORSHIP':
+        return t('Sponsorship');
+      case 'LOGS':
+        return t('Audit Logs');
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)] font-sans">
       {/* Mobile Sidebar Overlay */}
@@ -592,8 +609,8 @@ export const AdminDashboardPage: React.FC = () => {
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* TOP BAR */}
-        <header className="sticky top-0 z-30 h-14 bg-[var(--surface)] border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 h-14 bg-[var(--surface)] border-b border-[var(--border)] flex items-center justify-between gap-6 px-4 sm:px-6">
+          <div className="flex items-center gap-3 min-w-0">
             {/* Toggle Sidebar Button */}
             <button
               type="button"
@@ -604,96 +621,32 @@ export const AdminDashboardPage: React.FC = () => {
                   setSidebarOpen(!sidebarOpen);
                 }
               }}
-              className="w-8 h-8 rounded-[6px] border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-[6px] border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer shrink-0"
               title="Toggle sidebar"
             >
               <Menu className="w-4 h-4" strokeWidth={1.5} />
             </button>
 
             {/* Breadcrumb Header */}
-            <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex items-center gap-1.5 text-xs truncate">
               <span className="text-[var(--muted)] font-mono">{t('Admin')}</span>
               <span className="text-[var(--muted)]">/</span>
               <span className="font-medium text-[var(--text)] font-mono">{getBreadcrumb()}</span>
+              {isWorkspaceTab && (
+                <>
+                  <span className="text-[var(--muted)]">/</span>
+                  <span className="font-semibold text-[var(--primary)] font-mono truncate">{getActiveTabName()}</span>
+                </>
+              )}
             </div>
-
-            {/* Workspace Horizontal Tab List (shown when inside Workspace) */}
-            {isWorkspaceTab && (
-              <div className="hidden md:flex items-center gap-1 ml-4 pl-4 border-l border-[var(--border)]">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
-                    activeTab === 'EVENTS_WORKSHOPS'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
-                  }`}
-                >
-                  <Compass className="w-3 h-3" strokeWidth={1.5} />
-                  <span>{t('Events & Workshops')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('CLUBS_RANKINGS')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
-                    activeTab === 'CLUBS_RANKINGS'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
-                  }`}
-                >
-                  <Trophy className="w-3 h-3" strokeWidth={1.5} />
-                  <span>{t('Clubs & Rankings')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('ATTENDANCE')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
-                    activeTab === 'ATTENDANCE'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
-                  }`}
-                >
-                  <CheckCheck className="w-3 h-3" strokeWidth={1.5} />
-                  <span>{t('Attendance')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('SPONSORSHIP')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
-                    activeTab === 'SPONSORSHIP'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
-                  }`}
-                >
-                  <DollarSign className="w-3 h-3" strokeWidth={1.5} />
-                  <span>{t('Sponsorship')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('LOGS')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs transition-colors ${
-                    activeTab === 'LOGS'
-                      ? 'bg-[var(--surface-alt)] text-[var(--primary)] font-semibold border border-[var(--border)]'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
-                  }`}
-                >
-                  <Activity className="w-3 h-3" strokeWidth={1.5} />
-                  <span>{t('Audit Logs')}</span>
-                </button>
-              </div>
-            )}
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3 shrink-0">
             {/* Theme & Language Switcher */}
             <ThemeLanguageToggle />
 
             {/* Admin User Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono shrink-0">
               <span className="text-[var(--primary)] font-semibold">AD</span>
               <span className="text-[var(--muted)]">•</span>
               <span className="text-[var(--text)] truncate max-w-[120px] sm:max-w-none">
@@ -705,6 +658,75 @@ export const AdminDashboardPage: React.FC = () => {
 
         {/* WORKSPACE CONTENT BODY - Left aligned, max width ~1100px */}
         <main className="flex-1 p-4 sm:p-6 space-y-6 max-w-[1100px] w-full">
+          {/* Workspace Sub-Navigation Toolbar (Shown when inside a Workspace tab) */}
+          {isWorkspaceTab && (
+            <div className="flex items-center gap-1.5 p-1 bg-[var(--surface-alt)] border border-[var(--border)] rounded-[6px] overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                  activeTab === 'EVENTS_WORKSHOPS'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                }`}
+              >
+                <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>{t('Events & Workshops')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('CLUBS_RANKINGS')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                  activeTab === 'CLUBS_RANKINGS'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                }`}
+              >
+                <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>{t('Clubs & Rankings')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('ATTENDANCE')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                  activeTab === 'ATTENDANCE'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                }`}
+              >
+                <CheckCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>{t('Attendance')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('SPONSORSHIP')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                  activeTab === 'SPONSORSHIP'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                }`}
+              >
+                <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>{t('Sponsorship')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('LOGS')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                  activeTab === 'LOGS'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] font-semibold border border-[var(--border)]'
+                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>{t('Audit Logs')}</span>
+              </button>
+            </div>
+          )}
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>

@@ -60,10 +60,18 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
 
-    const data = await res.json();
+    const text = await res.text();
+    let data: any = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text };
+      }
+    }
 
     if (!res.ok) {
-      throw new ApiError(data.message || 'Something went wrong', res.status);
+      throw new ApiError(data.message || `Server error (${res.status})`, res.status);
     }
 
     isBackendAvailable = true;
