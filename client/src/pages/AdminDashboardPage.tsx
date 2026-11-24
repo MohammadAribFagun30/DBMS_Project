@@ -3,22 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   EventItem,
   Registration,
-  AuditLog,
   DashboardStats,
   Club,
   ClubRanking,
   Sponsor,
-  SponsorshipTier
+  SponsorshipTier,
+  Department
 } from '../types';
 import {
   apiEvents,
   apiRegistrations,
-  apiCertificates,
   apiSponsors,
   apiRankings,
   apiDashboard,
-  apiAuditLogs,
   apiClubs,
+  apiDepartments,
   checkBackendHealth
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +25,9 @@ import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ThemeLanguageToggle } from '../components/ThemeLanguageToggle';
 import { StatusBadge, TypeBadge } from '../components/Badge';
+import { EventCard } from '../components/EventCard';
+import { EventDetailModal } from '../components/EventDetailModal';
+import { ProposeEventModal } from '../components/ProposeEventModal';
 import {
   LayoutGrid,
   Folder,
@@ -39,13 +41,11 @@ import {
   Award,
   DollarSign,
   Trophy,
-  Activity,
   Calendar,
   Users,
   Search,
   PlusCircle,
   RefreshCw,
-  CheckCheck,
   ExternalLink,
   Building2,
   X,
@@ -61,9 +61,7 @@ type AdminTab =
   | 'DASHBOARD'
   | 'EVENTS_WORKSHOPS'
   | 'CLUBS_RANKINGS'
-  | 'ATTENDANCE'
   | 'SPONSORSHIP'
-  | 'LOGS'
   | 'PROFILE';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -81,18 +79,22 @@ export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Events & Workshops Search/Filter
-  const [eventSearch, setEventSearch] = useState<string>('');
-  const [eventFilter, setEventFilter] = useState<'ALL' | 'WORKSHOP' | 'SEMINAR' | 'PENDING' | 'APPROVED'>('ALL');
+  // Modals
+  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [proposeModalOpen, setProposeModalOpen] = useState<boolean>(false);
 
-  // Attendance filter
-  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  // Events & Workshops Advanced Search/Filter Toolbar
+  const [eventSearch, setEventSearch] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [selectedClub, setSelectedClub] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
 
   // Sponsorship form
   const [sponsorForm, setSponsorForm] = useState({
@@ -102,10 +104,10 @@ export const AdminDashboardPage: React.FC = () => {
     sponsorshipTier: 'PLATINUM' as SponsorshipTier,
   });
 
-  // Ranking year and data
+  // Ranking year and data (Automatically computed based on participants, sponsorship, feedback)
   const [rankingYear, setRankingYear] = useState<number>(2026);
   const [rankings, setRankings] = useState<ClubRanking[]>([]);
-  const [generatingRankings, setGeneratingRankings] = useState<boolean>(false);
+  const [clubTab, setClubTab] = useState<'RANKINGS' | 'DIRECTORY'>('RANKINGS');
 
   useEffect(() => {
     loadAll();
@@ -114,25 +116,22 @@ export const AdminDashboardPage: React.FC = () => {
   const loadAll = async () => {
     try {
       setLoading(true);
-      const [st, ev, cl, sp, lg, rg, rk] = await Promise.all([
+      const [st, ev, cl, dp, sp, rg, rk] = await Promise.all([
         apiDashboard.getStats(),
         apiEvents.getAll(),
         apiClubs.getAll(),
+        apiDepartments.getAll(),
         apiSponsors.getAll(),
-        apiAuditLogs.getAll(30),
         apiRegistrations.getMyRegistrations(),
         apiRankings.getByYear(rankingYear),
       ]);
       setStats(st);
       setEvents(ev);
       setClubs(cl);
+      setDepartments(dp);
       setSponsors(sp);
-      setAuditLogs(lg);
       setRegistrations(rg);
       setRankings(rk);
-      if (ev.length > 0 && !selectedEventId) {
-        setSelectedEventId(String(ev[0].id));
-      }
     } catch {
       // handled
     } finally {
@@ -165,16 +164,6 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const handleMarkAttendance = async (regId: number) => {
-    try {
-      await apiRegistrations.markAttended(regId);
-      toast.success('Attendee marked present & eligible for certificate!');
-      loadAll();
-    } catch (err: any) {
-      toast.error(err.message || 'Check-in failed');
-    }
-  };
-
   const handleRecordSponsorship = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sponsorForm.eventId || !sponsorForm.sponsorId) {
@@ -195,61 +184,50 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const handleGenerateRanking = async () => {
-    try {
-      setGeneratingRankings(true);
-      await apiRankings.generate(rankingYear);
-      toast.success(`Annual ${rankingYear} Club Rankings computed via 3-Factor Normalization Algorithm!`);
-      const rk = await apiRankings.getByYear(rankingYear);
-      setRankings(rk);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to compute rankings');
-    } finally {
-      setGeneratingRankings(false);
-    }
-  };
+  const availableClubs = selectedDepartment
+    ? clubs.filter((c) => c.departmentId === Number(selectedDepartment))
+    : clubs;
 
-  const handleGenerateCertificate = async () => {
-    if (!selectedEventId) {
-      toast.error('Please select an event first.');
-      return;
-    }
-    try {
-      const reg = registrations.find((r) => r.eventId === Number(selectedEventId));
-      if (!reg) {
-        toast.error('No attendees found for this event to issue certificate.');
-        return;
-      }
-      await apiCertificates.generate(reg.id);
-      toast.success('Digital certificate generated with verifiable hash!');
-      loadAll();
-    } catch (err: any) {
-      toast.error(err.message || 'Certificate generation failed');
-    }
-  };
+  const eventTypes = ['ALL', 'WORKSHOP', 'HACKATHON', 'SEMINAR', 'COMPETITION', 'SOCIAL'];
 
-  const pendingEvents = events.filter((e) => e.status === 'PENDING');
-  const workshopCount = events.filter((e) => e.eventType === 'WORKSHOP' || Boolean(e.workshop)).length;
   const filteredEvents = events.filter((ev) => {
-    const matchesSearch =
-      ev.title.toLowerCase().includes(eventSearch.toLowerCase()) ||
-      (ev.club?.clubName || '').toLowerCase().includes(eventSearch.toLowerCase());
-    if (!matchesSearch) return false;
+    // Search query matches title, description, club name, or workshop speaker
+    if (eventSearch.trim()) {
+      const q = eventSearch.toLowerCase();
+      const matchTitle = ev.title.toLowerCase().includes(q);
+      const matchDesc = ev.description?.toLowerCase().includes(q);
+      const matchClub = (ev.club?.clubName || '').toLowerCase().includes(q);
+      const matchSpeaker = (ev.workshop?.speakerName || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchDesc && !matchClub && !matchSpeaker) return false;
+    }
 
-    if (eventFilter === 'WORKSHOP') return ev.eventType === 'WORKSHOP' || Boolean(ev.workshop);
-    if (eventFilter === 'SEMINAR') return ev.eventType === 'SEMINAR';
-    if (eventFilter === 'PENDING') return ev.status === 'PENDING';
-    if (eventFilter === 'APPROVED') return ev.status === 'APPROVED';
+    // Type filter
+    if (selectedType !== 'ALL' && ev.eventType !== selectedType) {
+      return false;
+    }
+
+    // Department filter
+    if (selectedDepartment && ev.club?.departmentId !== Number(selectedDepartment)) {
+      return false;
+    }
+
+    // Club filter
+    if (selectedClub && ev.clubId !== Number(selectedClub)) {
+      return false;
+    }
+
+    // Status filter
+    if (selectedStatus !== 'ALL' && ev.status !== selectedStatus) {
+      return false;
+    }
+
     return true;
   });
-  const selectedEvent = events.find((e) => String(e.id) === selectedEventId);
 
   const isWorkspaceTab = [
     'EVENTS_WORKSHOPS',
     'CLUBS_RANKINGS',
-    'ATTENDANCE',
-    'SPONSORSHIP',
-    'LOGS'
+    'SPONSORSHIP'
   ].includes(activeTab);
 
   const getBreadcrumb = () => {
@@ -258,9 +236,7 @@ export const AdminDashboardPage: React.FC = () => {
         return t('Dashboard');
       case 'EVENTS_WORKSHOPS':
       case 'CLUBS_RANKINGS':
-      case 'ATTENDANCE':
       case 'SPONSORSHIP':
-      case 'LOGS':
         return t('Workspace');
       case 'PROFILE':
         return t('Profile');
@@ -275,19 +251,22 @@ export const AdminDashboardPage: React.FC = () => {
         return t('Events & Workshops');
       case 'CLUBS_RANKINGS':
         return t('Clubs & Rankings');
-      case 'ATTENDANCE':
-        return t('Attendance');
       case 'SPONSORSHIP':
         return t('Sponsorship');
-      case 'LOGS':
-        return t('Audit Logs');
       default:
         return '';
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)] font-sans">
+    <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)] font-sans relative overflow-x-hidden">
+      {/* Background ambient luminous blurs for realistic glassmorphism depth */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-24 -left-20 w-[420px] h-[420px] rounded-full bg-[#B36836]/10 dark:bg-[#5DA583]/10 blur-3xl" />
+        <div className="absolute top-1/2 -left-32 w-[380px] h-[380px] rounded-full bg-[#8A6414]/8 dark:bg-[#74B898]/8 blur-3xl" />
+        <div className="absolute bottom-0 left-10 w-80 h-80 rounded-full bg-[#3B2418]/5 dark:bg-white/5 blur-3xl" />
+      </div>
+
       {/* Mobile Sidebar Overlay */}
       {sidebarOpenMobile && (
         <div
@@ -298,7 +277,7 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* LEFT SIDEBAR - Expanded (w-64) or Collapsed Rail (w-[72px]) Glassmorphism */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen backdrop-blur-2xl bg-white/70 dark:bg-[#1D1C17]/80 border-r border-white/60 dark:border-white/10 shadow-[4px_0_30px_rgba(59,36,24,0.05)] dark:shadow-[4px_0_30px_rgba(0,0,0,0.4)] flex flex-col justify-between transition-all shrink-0 overflow-visible ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen sidebar-glass flex flex-col justify-between transition-all shrink-0 overflow-visible ${
           sidebarOpenMobile ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         } ${sidebarOpen ? 'lg:w-64' : 'lg:w-[72px]'}`}
       >
@@ -335,7 +314,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSidebarOpen(false)}
-                  className="hidden lg:flex w-6 h-6 rounded-full bg-white/80 hover:bg-white dark:bg-white/10 dark:hover:bg-white/20 border border-white/80 dark:border-white/10 shadow-xs items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer"
+                  className="hidden lg:flex w-6 h-6 rounded-full bg-white/40 hover:bg-white/70 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-xs items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer"
                   title="Collapse sidebar"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -353,8 +332,8 @@ export const AdminDashboardPage: React.FC = () => {
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                     activeTab === 'DASHBOARD'
-                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_4px_14px_rgba(59,36,24,0.07)] dark:shadow-none border border-white/90 dark:border-white/10'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
+                      ? 'sidebar-glass-item-active font-semibold'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/25 dark:hover:bg-white/5 border border-transparent'
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" strokeWidth={1.5} />
@@ -366,7 +345,7 @@ export const AdminDashboardPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setWorkspaceOpen(!workspaceOpen)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5 transition-all cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/25 dark:hover:bg-white/5 border border-transparent transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5">
                       <Folder className="w-4 h-4" strokeWidth={1.5} />
@@ -380,7 +359,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </button>
 
                   {workspaceOpen && (
-                    <div className="pl-5 pr-1 py-1 space-y-0.5 border-l border-white/60 dark:border-white/10 ml-4 mt-1">
+                    <div className="pl-5 pr-1 py-1 space-y-0.5 border-l border-white/40 dark:border-white/10 ml-4 mt-1">
                       <button
                         type="button"
                         onClick={() => {
@@ -389,19 +368,14 @@ export const AdminDashboardPage: React.FC = () => {
                         }}
                         className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'EVENTS_WORKSHOPS'
-                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
+                            ? 'sidebar-glass-item-active font-semibold'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/20 dark:hover:bg-white/5 border border-transparent'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
                           <span>{t('Events & Workshops')}</span>
                         </div>
-                        {pendingEvents.length > 0 && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[4px] bg-[var(--status-pending-bg)] text-[var(--status-pending-text)]">
-                            {pendingEvents.length}
-                          </span>
-                        )}
                       </button>
 
                       <button
@@ -412,60 +386,12 @@ export const AdminDashboardPage: React.FC = () => {
                         }}
                         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
                           activeTab === 'CLUBS_RANKINGS'
-                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
+                            ? 'sidebar-glass-item-active font-semibold'
+                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/20 dark:hover:bg-white/5 border border-transparent'
                         }`}
                       >
                         <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
                         <span>{t('Clubs & Rankings')}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('ATTENDANCE');
-                          setSidebarOpenMobile(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
-                          activeTab === 'ATTENDANCE'
-                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
-                        }`}
-                      >
-                        <CheckCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        <span>{t('Attendance')}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('SPONSORSHIP');
-                          setSidebarOpenMobile(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
-                          activeTab === 'SPONSORSHIP'
-                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
-                        }`}
-                      >
-                        <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        <span>{t('Sponsorship')}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('LOGS');
-                          setSidebarOpenMobile(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-xs transition-all cursor-pointer ${
-                          activeTab === 'LOGS'
-                            ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] dark:shadow-none border border-white/90 dark:border-white/10'
-                            : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/40 dark:hover:bg-white/5'
-                        }`}
-                      >
-                        <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        <span>{t('Audit Logs')}</span>
                       </button>
                     </div>
                   )}
@@ -480,8 +406,8 @@ export const AdminDashboardPage: React.FC = () => {
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                     activeTab === 'PROFILE'
-                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_4px_14px_rgba(59,36,24,0.07)] dark:shadow-none border border-white/90 dark:border-white/10'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
+                      ? 'sidebar-glass-item-active font-semibold'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/25 dark:hover:bg-white/5 border border-transparent'
                   }`}
                 >
                   <UserIcon className="w-4 h-4" strokeWidth={1.5} />
@@ -491,9 +417,9 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
 
             {/* Bottom Glass User Profile & Actions (matching bottom of reference pic) */}
-            <div className="p-3 border-t border-white/60 dark:border-white/10 space-y-2">
+            <div className="p-3 border-t border-white/40 dark:border-white/10 space-y-2">
               {/* User Profile Card */}
-              <div className="p-2 rounded-[10px] bg-white/50 dark:bg-white/5 border border-white/70 dark:border-white/10 shadow-xs flex items-center justify-between gap-2">
+              <div className="p-2 rounded-[12px] sidebar-glass-card flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-7 h-7 rounded-full bg-[var(--primary)] text-[var(--primary-contrast)] font-mono text-[11px] font-semibold flex items-center justify-center shrink-0 shadow-xs">
                     AD
@@ -514,7 +440,7 @@ export const AdminDashboardPage: React.FC = () => {
                     logout();
                     navigate('/login');
                   }}
-                  className="w-6 h-6 rounded-[6px] hover:bg-white/80 dark:hover:bg-white/10 text-[#9B3A2D] flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  className="w-6 h-6 rounded-[6px] hover:bg-white/50 dark:hover:bg-white/10 text-[#9B3A2D] flex items-center justify-center transition-colors cursor-pointer shrink-0"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -524,7 +450,7 @@ export const AdminDashboardPage: React.FC = () => {
               {/* Public Portal Link */}
               <Link
                 to="/home"
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] rounded-[8px] hover:bg-white/50 dark:hover:bg-white/5 transition-all"
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] rounded-[8px] hover:bg-white/25 dark:hover:bg-white/5 transition-all"
               >
                 <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
                 <span>{t('Campus Portal')}</span>
@@ -548,7 +474,7 @@ export const AdminDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="w-6 h-6 rounded-full bg-white/80 hover:bg-white dark:bg-white/10 dark:hover:bg-white/20 border border-white/80 dark:border-white/10 shadow-xs flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer"
+                className="w-6 h-6 rounded-full bg-white/40 hover:bg-white/70 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md border border-white/50 dark:border-white/10 shadow-xs flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer"
                 title="Expand sidebar"
               >
                 <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -564,14 +490,14 @@ export const AdminDashboardPage: React.FC = () => {
                   onClick={() => setActiveTab('DASHBOARD')}
                   className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-all cursor-pointer ${
                     activeTab === 'DASHBOARD'
-                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] shadow-[0_4px_14px_rgba(59,36,24,0.08)] border border-white/90 dark:border-white/10'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
+                      ? 'sidebar-glass-item-active'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/25 dark:hover:bg-white/5 border border-transparent'
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" strokeWidth={1.5} />
                 </button>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="backdrop-blur-md bg-white/95 dark:bg-[#1D1C17]/95 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/80 dark:border-white/10 shadow-md whitespace-nowrap">
+                  <span className="backdrop-blur-md bg-white/90 dark:bg-[#1D1C17]/90 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/60 dark:border-white/10 shadow-md whitespace-nowrap">
                     {t('Dashboard')}
                   </span>
                 </div>
@@ -586,17 +512,14 @@ export const AdminDashboardPage: React.FC = () => {
                   }}
                   className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-all cursor-pointer relative ${
                     isWorkspaceTab
-                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] shadow-[0_4px_14px_rgba(59,36,24,0.08)] border border-white/90 dark:border-white/10'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
+                      ? 'sidebar-glass-item-active'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/25 dark:hover:bg-white/5 border border-transparent'
                   }`}
                 >
                   <Folder className="w-4 h-4" strokeWidth={1.5} />
-                  {pendingEvents.length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--highlight)]" />
-                  )}
                 </button>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="backdrop-blur-md bg-white/95 dark:bg-[#1D1C17]/95 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/80 dark:border-white/10 shadow-md whitespace-nowrap">
+                  <span className="backdrop-blur-md bg-white/90 dark:bg-[#1D1C17]/90 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/60 dark:border-white/10 shadow-md whitespace-nowrap">
                     {t('Workspace')}
                   </span>
                 </div>
@@ -609,14 +532,14 @@ export const AdminDashboardPage: React.FC = () => {
                   onClick={() => setActiveTab('PROFILE')}
                   className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-all cursor-pointer ${
                     activeTab === 'PROFILE'
-                      ? 'bg-white dark:bg-white/15 text-[var(--primary)] shadow-[0_4px_14px_rgba(59,36,24,0.08)] border border-white/90 dark:border-white/10'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
+                      ? 'sidebar-glass-item-active'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/25 dark:hover:bg-white/5 border border-transparent'
                   }`}
                 >
                   <UserIcon className="w-4 h-4" strokeWidth={1.5} />
                 </button>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center pointer-events-none">
-                  <span className="backdrop-blur-md bg-white/95 dark:bg-[#1D1C17]/95 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/80 dark:border-white/10 shadow-md whitespace-nowrap">
+                  <span className="backdrop-blur-md bg-white/90 dark:bg-[#1D1C17]/90 text-[var(--text)] text-xs font-mono px-2.5 py-1 rounded-[6px] border border-white/60 dark:border-white/10 shadow-md whitespace-nowrap">
                     {t('Profile')}
                   </span>
                 </div>
@@ -624,10 +547,10 @@ export const AdminDashboardPage: React.FC = () => {
             </nav>
 
             {/* Bottom Actions */}
-            <div className="space-y-1 flex flex-col items-center border-t border-white/60 dark:border-white/10 pt-2 w-full">
+            <div className="space-y-1 flex flex-col items-center border-t border-white/40 dark:border-white/10 pt-2 w-full">
               <Link
                 to="/home"
-                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5 transition-all"
+                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/30 dark:hover:bg-white/5 transition-all"
                 title="Public Campus Portal"
               >
                 <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -638,7 +561,7 @@ export const AdminDashboardPage: React.FC = () => {
                   logout();
                   navigate('/login');
                 }}
-                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[#9B3A2D] hover:bg-white/50 dark:hover:bg-white/5 cursor-pointer transition-all"
+                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[#9B3A2D] hover:bg-white/30 dark:hover:bg-white/5 cursor-pointer transition-all"
                 title="Sign Out"
               >
                 <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -684,6 +607,18 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {/* Manual Refresh Button */}
+            <button
+              type="button"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing || loading}
+              className="h-8 px-2.5 rounded-[8px] border border-white/70 dark:border-white/10 bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-[var(--muted)] hover:text-[var(--text)] flex items-center gap-1.5 text-xs font-mono transition-all cursor-pointer shadow-xs disabled:opacity-60"
+              title={isBn ? "ড্যাশবোর্ড রিফ্রেশ করুন" : "Refresh dashboard"}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? 'animate-spin text-[var(--primary)]' : ''}`} strokeWidth={1.5} />
+              <span className="hidden sm:inline">{isRefreshing ? (isBn ? 'রিফ্রেশ...' : 'Refreshing...') : t('Refresh')}</span>
+            </button>
+
             {/* Theme & Language Switcher */}
             <ThemeLanguageToggle />
 
@@ -700,97 +635,6 @@ export const AdminDashboardPage: React.FC = () => {
 
         {/* WORKSPACE CONTENT BODY - Left aligned, max width ~1100px */}
         <main className="flex-1 p-4 sm:p-6 space-y-6 max-w-[1100px] w-full">
-          {/* Workspace Sub-Navigation Toolbar (Shown when inside a Workspace tab) */}
-          {isWorkspaceTab && (
-            <div className="flex items-center gap-1.5 p-1 backdrop-blur-md bg-white/60 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-[10px] shadow-[0_2px_12px_rgba(59,36,24,0.04)] overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  activeTab === 'EVENTS_WORKSHOPS'
-                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
-                }`}
-              >
-                <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Events & Workshops')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('CLUBS_RANKINGS')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  activeTab === 'CLUBS_RANKINGS'
-                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
-                }`}
-              >
-                <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Clubs & Rankings')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('ATTENDANCE')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  activeTab === 'ATTENDANCE'
-                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
-                }`}
-              >
-                <CheckCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Attendance')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('SPONSORSHIP')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  activeTab === 'SPONSORSHIP'
-                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
-                }`}
-              >
-                <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Sponsorship')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('LOGS')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  activeTab === 'LOGS'
-                    ? 'bg-white dark:bg-white/15 text-[var(--primary)] font-semibold shadow-[0_2px_8px_rgba(59,36,24,0.06)] border border-white/90 dark:border-white/10'
-                    : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/50 dark:hover:bg-white/5'
-                }`}
-              >
-                <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Audit Logs')}</span>
-              </button>
-            </div>
-          )}
-          {/* Header Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="font-heading font-semibold text-xl sm:text-2xl text-[var(--text)] tracking-tight">
-                {t('Admin Dashboard')}
-              </h1>
-              <p className="text-xs text-[var(--muted)] mt-0.5">
-                {t('Monitor platform activity and manage your workspace.')}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleManualRefresh}
-              disabled={isRefreshing || loading}
-              className="btn-secondary text-xs py-1.5 px-3 self-start sm:self-auto cursor-pointer disabled:opacity-60"
-              title={isBn ? "ড্যাশবোর্ড রিফ্রেশ করুন" : "Refresh dashboard"}
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? 'animate-spin text-[var(--primary)]' : ''}`} strokeWidth={1.5} />
-              <span>{isRefreshing ? (isBn ? 'রিফ্রেশ হচ্ছে...' : 'Refreshing...') : t('Refresh')}</span>
-            </button>
-          </div>
 
           {/* TAB VIEW 1: DASHBOARD OVERVIEW */}
           {activeTab === 'DASHBOARD' && (
@@ -831,130 +675,25 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-mono text-xl font-semibold text-[var(--text)]">
-                      ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 325000).toLocaleString()}
+                      ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 210000).toLocaleString()}
                     </p>
                     <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
-                      {t('Raised Funds')}
+                      {t('Sponsorships')}
                     </span>
                   </div>
                 </div>
 
                 <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4" strokeWidth={1.5} />
+                    <Award className="w-4 h-4" strokeWidth={1.5} />
                   </div>
                   <div>
                     <p className="font-mono text-xl font-semibold text-[var(--text)]">
-                      {pendingEvents.length}
+                      {stats?.totalCertificates ?? 1}
                     </p>
                     <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
-                      {t('Pending Approvals')}
+                      {t('Verified Certs')}
                     </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Two Column Split: Pending Approvals Queue & Live Audit Logs */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Pending Approvals Queue */}
-                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] card-blue-shadow-static p-4 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-[var(--highlight)]" strokeWidth={1.5} />
-                      <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
-                        {t('Pending Event Approvals Queue')}
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('EVENTS_WORKSHOPS')}
-                      className="text-xs text-[var(--primary)] hover:underline font-mono"
-                    >
-                      {isBn ? `সবগুলো (${pendingEvents.length})` : `View all (${pendingEvents.length})`}
-                    </button>
-                  </div>
-
-                  {pendingEvents.length === 0 ? (
-                    <div className="py-6 text-center text-xs text-[var(--muted)] space-y-1">
-                      <CheckCircle className="w-6 h-6 text-[#2F6B4F] dark:text-[#7CC09E] mx-auto" strokeWidth={1.5} />
-                      <p className="font-medium text-[var(--text)]">{t('All events moderated!')}</p>
-                      <p>{t('No proposals currently awaiting review.')}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {pendingEvents.slice(0, 3).map((event) => (
-                        <div
-                          key={event.id}
-                          className="p-2.5 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-between gap-3 text-xs"
-                        >
-                          <div className="min-w-0">
-                            <h4 className="font-medium text-[var(--text)] truncate">
-                              {event.title}
-                            </h4>
-                            <p className="text-[var(--muted)] text-[11px] truncate">
-                              {t(event.club?.clubName || '')} • {event.eventType}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStatus(event.id, 'APPROVED')}
-                              className="px-2.5 py-1 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] font-medium text-[11px] btn-approve-hover cursor-pointer"
-                            >
-                              {t('Approve')}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStatus(event.id, 'REJECTED')}
-                              className="px-2.5 py-1 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] text-[#9B3A2D] font-medium text-[11px] btn-reject-hover cursor-pointer"
-                            >
-                              {t('Reject')}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Recent Audit Activity */}
-                <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] card-blue-shadow-static p-4 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-[var(--muted)]" strokeWidth={1.5} />
-                      <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
-                        {t('Platform Audit Activity')}
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('LOGS')}
-                      className="text-xs text-[var(--primary)] hover:underline font-mono"
-                    >
-                      {t('View full log')}
-                    </button>
-                  </div>
-
-                  <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                    {auditLogs.slice(0, 5).map((log) => (
-                      <div
-                        key={log.id}
-                        className="p-2 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-between text-xs"
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shrink-0" />
-                          <span className="font-mono text-xs text-[var(--text)] truncate">
-                            {log.action}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-[var(--muted)] font-mono shrink-0">
-                          {new Date(log.timestamp).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -1015,190 +754,225 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB VIEW 2: EVENTS & WORKSHOPS CONSOLE */}
+          {/* TAB VIEW 2: EVENTS & WORKSHOPS (MATCHING PIC 2) */}
           {activeTab === 'EVENTS_WORKSHOPS' && (
-            <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-heading font-semibold text-base text-[var(--text)]">
-                      {t('Events & Workshops Console')}
-                    </h3>
-                    <p className="text-xs text-[var(--muted)] mt-0.5">
-                      {t('Manage, moderate, and monitor campus events and hands-on workshops.')}
-                    </p>
-                  </div>
+            <div className="space-y-6">
+              {/* Institutional Left-Aligned Header */}
+              <section className="bg-[var(--surface)] p-6 sm:p-8 rounded-[6px] border border-[var(--border)] card-blue-shadow-static">
+                <div className="max-w-2xl space-y-3">
+                  <span className="text-xs font-mono uppercase tracking-wider text-[var(--primary)] font-semibold">
+                    {t('IIUC Central Campus Management')}
+                  </span>
+                  <h1 className="font-heading font-semibold text-2xl sm:text-3xl text-[var(--text)] tracking-tight">
+                    {t('Club Activities, Technical Workshops & Verified Passes')}
+                  </h1>
+                  <p className="text-[var(--muted)] text-sm leading-relaxed">
+                    {t('International Islamic University Chittagong centralized platform for official club events, workshops, digital event entry passes, verified certificates, and annual 3-factor club performance rankings.')}
+                  </p>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2 py-1 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono text-[var(--text)]">
-                      {isBn ? `${events.length}টি মোট ইভেন্ট` : `${events.length} Total Events`}
-                    </span>
-                    <span className="px-2 py-1 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs font-mono text-[var(--text)]">
-                      {isBn ? `${workshopCount}টি ওয়ার্কশপ` : `${workshopCount} Workshops`}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                    <Link to="/events" className="btn-primary text-xs py-2 px-4">
+                      <Compass className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      {t('Explore All Events')}
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => setProposeModalOpen(true)}
+                      className="btn-secondary text-xs py-2 px-4 cursor-pointer"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      {t('Create New Event')}
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* KPI Stats Counter Row */}
+              <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <Compass className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalEvents ?? events.length}</p>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Campus Events')}</span>
                   </div>
                 </div>
 
-                {/* Search & Filter */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[var(--border)]">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="w-3.5 h-3.5 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
-                    <input
-                      type="text"
-                      placeholder={t('Search by event title or club...')}
-                      value={eventSearch}
-                      onChange={(e) => setEventSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs text-[var(--text)] placeholder:text-[var(--muted)]"
-                    />
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <Users className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalRegistrations ?? 9}</p>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Issued Passes')}</span>
+                  </div>
+                </div>
+
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <DollarSign className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">
+                      ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 210000).toLocaleString()}
+                    </p>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Sponsorships')}</span>
+                  </div>
+                </div>
+
+                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
+                    <Award className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalCertificates ?? 1}</p>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Verified Certs')}</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* Featured Campus Events */}
+              <section className="space-y-4">
+                <div className="pb-2 border-b border-[var(--border)]">
+                  <h2 className="font-heading font-semibold text-lg text-[var(--text)]">{t('Featured Campus Events')}</h2>
+                  <p className="text-xs text-[var(--muted)]">{t('Register online to generate your digital verification pass.')}</p>
+                </div>
+
+                {/* Search & Filter Toolbar (Matching Reference Image) */}
+                <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3 card-blue-shadow-static">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                    {/* Search Keywords */}
+                    <div className="relative sm:col-span-2 lg:col-span-2">
+                      <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                        {t('Search Keywords')}
+                      </label>
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
+                        <input
+                          type="text"
+                          placeholder={t('Search by title, speaker, keyword...')}
+                          value={eventSearch}
+                          onChange={(e) => setEventSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs font-sans text-[var(--text)] placeholder:text-[var(--muted)]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Academic Department */}
+                    <div>
+                      <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                        {t('Academic Department')}
+                      </label>
+                      <select
+                        value={selectedDepartment}
+                        onChange={(e) => {
+                          setSelectedDepartment(e.target.value);
+                          setSelectedClub('');
+                        }}
+                        className="w-full px-2.5 py-1.5 text-xs text-[var(--text)]"
+                      >
+                        <option value="">{t('All Departments')}</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.departmentName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Organizing Club */}
+                    <div>
+                      <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                        {t('Organizing Club')}
+                      </label>
+                      <select
+                        value={selectedClub}
+                        onChange={(e) => setSelectedClub(e.target.value)}
+                        className="w-full px-2.5 py-1.5 text-xs text-[var(--text)]"
+                      >
+                        <option value="">{t('All Clubs')}</option>
+                        {availableClubs.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.clubName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                      <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                        {t('Status')}
+                      </label>
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full px-2.5 py-1.5 text-xs text-[var(--text)]"
+                      >
+                        <option value="ALL">{t('All Status')}</option>
+                        <option value="APPROVED">{t('Approved')}</option>
+                        <option value="COMPLETED">{t('Completed')}</option>
+                        <option value="PENDING">{t('Pending')}</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-1">
-                    {[
-                      { key: 'ALL', label: isBn ? `সকল (${events.length})` : `All (${events.length})` },
-                      { key: 'WORKSHOP', label: isBn ? `ওয়ার্কশপ (${workshopCount})` : `Workshops (${workshopCount})` },
-                      { key: 'PENDING', label: isBn ? `অপেক্ষমান (${pendingEvents.length})` : `Pending (${pendingEvents.length})` },
-                      { key: 'APPROVED', label: t('Approved') },
-                    ].map((tab) => (
+                  {/* Type Filter Pills */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[var(--border)]">
+                    <span className="text-[11px] font-mono text-[var(--muted)] mr-1">
+                      Type:
+                    </span>
+
+                    {eventTypes.map((tName) => (
                       <button
-                        key={tab.key}
+                        key={tName}
                         type="button"
-                        onClick={() => setEventFilter(tab.key as any)}
+                        onClick={() => setSelectedType(tName)}
                         className={`px-2.5 py-1 rounded-[4px] text-xs font-mono transition-colors cursor-pointer ${
-                          eventFilter === tab.key
+                          selectedType === tName
                             ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
                             : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--border)]'
                         }`}
                       >
-                        {tab.label}
+                        {tName}
                       </button>
                     ))}
+
+                    {(eventSearch || selectedType !== 'ALL' || selectedDepartment || selectedClub || selectedStatus !== 'ALL') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEventSearch('');
+                          setSelectedType('ALL');
+                          setSelectedDepartment('');
+                          setSelectedClub('');
+                          setSelectedStatus('ALL');
+                        }}
+                        className="text-xs text-[#9B3A2D] hover:underline ml-auto flex items-center gap-1 font-mono cursor-pointer"
+                      >
+                        <X className="w-3 h-3" strokeWidth={1.5} /> {t('Reset Filters')}
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Events Dense Table */}
-                <div className="overflow-x-auto">
-                  <table className="dense-table">
-                    <thead>
-                      <tr>
-                        <th>{t('Event Title')}</th>
-                        <th>{t('Club')}</th>
-                        <th>{t('Type')}</th>
-                        <th>{t('Date')}</th>
-                        <th>{t('Status')}</th>
-                        <th className="text-right">{t('Actions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredEvents.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="text-center py-6 text-[var(--muted)]">
-                            {t('No events matching criteria.')}
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredEvents.map((ev) => (
-                          <tr key={ev.id}>
-                            <td className="font-medium text-[var(--text)] max-w-xs truncate">
-                              {ev.title}
-                            </td>
-                            <td className="text-[var(--muted)]">{ev.club?.clubName}</td>
-                            <td><TypeBadge type={ev.eventType} /></td>
-                            <td className="font-mono text-[var(--muted)]">
-                              {new Date(ev.startTime).toLocaleDateString()}
-                            </td>
-                            <td><StatusBadge status={ev.status} /></td>
-                            <td className="text-right">
-                              <div className="inline-flex items-center gap-1.5">
-                                {ev.status !== 'APPROVED' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateStatus(ev.id, 'APPROVED')}
-                                    className="px-2.5 py-1 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] text-xs font-medium btn-approve-hover cursor-pointer"
-                                  >
-                                    {t('Approve')}
-                                  </button>
-                                )}
-                                {ev.status !== 'REJECTED' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateStatus(ev.id, 'REJECTED')}
-                                    className="px-2.5 py-1 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[#9B3A2D] text-xs font-medium btn-reject-hover cursor-pointer"
-                                  >
-                                    {t('Reject')}
-                                  </button>
-                                )}
-                                {ev.status === 'APPROVED' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateStatus(ev.id, 'COMPLETED')}
-                                    className="px-2 py-0.5 rounded-[4px] btn-secondary text-xs cursor-pointer"
-                                  >
-                                    {t('Complete')}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                {/* Event Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onSelect={setSelectedEvent}
+                    />
+                  ))}
                 </div>
-              </div>
+              </section>
             </div>
           )}
 
-          {/* TAB VIEW 3: ATTENDANCE & PASS CHECK-IN */}
-          {activeTab === 'ATTENDANCE' && (
-            <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-heading font-semibold text-base text-[var(--text)]">
-                      {t('Venue Check-In & Certificate Issue')}
-                    </h3>
-                    <p className="text-xs text-[var(--muted)]">
-                      {t('Select event to mark attendee passes and unlock certificates.')}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedEventId}
-                      onChange={(e) => setSelectedEventId(e.target.value)}
-                      className="px-2.5 py-1.5 text-xs font-mono"
-                    >
-                      {events.map((e) => (
-                        <option key={e.id} value={e.id}>
-                          {e.title}
-                        </option>
-                      ))}
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={handleGenerateCertificate}
-                      className="btn-primary text-xs py-1.5 px-3"
-                    >
-                      <Award className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      <span>{t('Issue Certs')}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-xs text-[var(--muted)] flex items-center justify-between font-mono">
-                  <span>
-                    {t('Selected Event:')} <strong className="text-[var(--text)]">{selectedEvent?.title}</strong>
-                  </span>
-                  <span>
-                    {t('Total Registered:')} <strong className="text-[var(--text)]">{selectedEvent?._count?.registrations ?? 0}</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB VIEW 4: SPONSORSHIP LEDGER */}
+          {/* TAB VIEW 3: SPONSORSHIP LEDGER */}
           {activeTab === 'SPONSORSHIP' && (
             <div className="space-y-4">
               <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
@@ -1284,170 +1058,186 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB VIEW 5: CLUBS & RANKINGS */}
+          {/* TAB VIEW 4: CLUBS & PERFORMANCE LEADERBOARDS (MATCHING PIC 2) */}
           {activeTab === 'CLUBS_RANKINGS' && (
-            <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-heading font-semibold text-base text-[var(--text)]">
-                      {t('IIUC 3-Factor Normalization Algorithm')}
-                    </h3>
-                    <p className="text-xs text-[var(--muted)] font-mono mt-0.5">
-                      35% Events + 35% Sponsorship + 30% Student Feedback
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={rankingYear}
-                      onChange={(e) => setRankingYear(Number(e.target.value))}
-                      className="px-2.5 py-1.5 text-xs font-mono"
-                    >
-                      <option value={2026}>{isBn ? '২০২৬ সাল' : 'Year 2026'}</option>
-                      <option value={2025}>{isBn ? '২০২৫ সাল' : 'Year 2025'}</option>
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={handleGenerateRanking}
-                      disabled={generatingRankings}
-                      className="btn-primary text-xs py-1.5 px-3"
-                    >
-                      <SlidersHorizontal className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      <span>{generatingRankings ? t('Computing...') : t('Generate Rankings')}</span>
-                    </button>
-                  </div>
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--highlight)] font-semibold">
+                    {t('Institutional Standing')}
+                  </span>
+                  <h1 className="font-heading font-semibold text-2xl text-[var(--text)] tracking-tight">
+                    {t('Clubs & Performance Leaderboards')}
+                  </h1>
+                  <p className="text-xs text-[var(--muted)] mt-0.5">
+                    {t('Recognized student organizations, performance metrics, and annual 3-factor rankings.')}
+                  </p>
                 </div>
 
-                {/* Rankings Dense Table */}
-                {rankings.length > 0 && (
-                  <div className="overflow-x-auto">
-                    <table className="dense-table">
-                      <thead>
-                        <tr>
-                          <th>{t('Rank')}</th>
-                          <th>{t('Club Name')}</th>
-                          <th>{t('Events Score')}</th>
-                          <th>{t('Sponsorship')}</th>
-                          <th>{t('Feedback')}</th>
-                          <th>{t('Final Score')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rankings.map((r) => (
-                          <tr key={r.id}>
-                            <td className="font-mono font-medium text-[var(--text)]">
-                              #{r.rankPosition}
-                            </td>
-                            <td className="font-medium text-[var(--text)]">
-                              {t(r.club?.clubName || r.clubName || '')}
-                            </td>
-                            <td className="font-mono text-[var(--muted)]">
-                              {Number(r.totalEventsScore).toFixed(1)}
-                            </td>
-                            <td className="font-mono text-[var(--muted)]">
-                              {Number(r.sponsorshipScore).toFixed(1)}
-                            </td>
-                            <td className="font-mono text-[var(--muted)]">
-                              {Number(r.feedbackScore).toFixed(1)}
-                            </td>
-                            <td className="font-mono font-semibold text-[var(--primary)]">
-                              {Number(r.finalScore).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                {/* View Switcher Tabs */}
+                <div className="flex items-center gap-1 bg-[var(--surface-alt)] p-1 rounded-[6px] border border-[var(--border)] self-start md:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setClubTab('RANKINGS')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-mono transition-colors cursor-pointer ${
+                      clubTab === 'RANKINGS'
+                        ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                        : 'text-[var(--muted)] hover:text-[var(--text)]'
+                    }`}
+                  >
+                    <Trophy className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    {t('Annual Leaderboard')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setClubTab('DIRECTORY')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-mono transition-colors cursor-pointer ${
+                      clubTab === 'DIRECTORY'
+                        ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                        : 'text-[var(--muted)] hover:text-[var(--text)]'
+                    }`}
+                  >
+                    <Building2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    {t('Club Directory')}
+                  </button>
+                </div>
               </div>
 
-              {/* Campus Clubs Directory */}
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[var(--muted)]" strokeWidth={1.5} />
-                    <h3 className="font-heading font-semibold text-sm text-[var(--text)]">
-                      {t('Registered Campus Clubs Directory')}
-                    </h3>
-                  </div>
-                  <span className="text-xs font-mono text-[var(--muted)]">
-                    {isBn ? `${clubs.length}টি ক্লাব নিবন্ধিত` : `${clubs.length} Clubs Registered`}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {clubs.map((club) => (
-                    <div
-                      key={club.id}
-                      className="p-3 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-xs text-[var(--text)] truncate">
-                          {t(club.clubName)}
-                        </h4>
-                        {club.establishedYear && (
-                          <span className="text-[10px] font-mono text-[var(--muted)]">
-                            {isBn ? `প্রতিষ্ঠিত ${club.establishedYear}` : `Est. ${club.establishedYear}`}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-[var(--muted)] line-clamp-2">
-                        {club.description || t('No description provided.')}
+              {clubTab === 'RANKINGS' ? (
+                <div className="space-y-4">
+                  {/* Algorithm Info Card & Year Selector */}
+                  <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 card-blue-shadow-static">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-mono text-[var(--highlight)] uppercase tracking-wider font-semibold">
+                        {t('IIUC 3-Factor Normalization Algorithm')}
+                      </span>
+                      <h2 className="font-heading font-semibold text-base text-[var(--text)]">
+                        {t('Official Annual Rankings')}
+                      </h2>
+                      <p className="text-xs font-mono text-[var(--muted)]">
+                        {t('Ranking Formula: 35% Events/Participants + 35% Sponsorship + 30% Student Feedback')}
                       </p>
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--border)] text-[var(--muted)] font-mono">
-                        <span>{club.department?.departmentName || 'General'}</span>
-                        <span className="text-[var(--primary)] font-medium">
-                          {isBn ? `${club._count?.events || 0}টি ইভেন্ট` : `${club._count?.events || 0} events`}
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-[var(--surface-alt)] p-1 rounded-[4px] border border-[var(--border)] shrink-0 font-mono text-xs">
+                      <span className="text-[var(--muted)] px-2">{t('Academic Year')}:</span>
+                      {[2026, 2025, 2024].map((yr) => (
+                        <button
+                          key={yr}
+                          type="button"
+                          onClick={() => setRankingYear(yr)}
+                          className={`px-2.5 py-1 rounded-[4px] transition-colors cursor-pointer ${
+                            rankingYear === yr
+                              ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                              : 'text-[var(--muted)] hover:text-[var(--text)]'
+                          }`}
+                        >
+                          {yr}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Leaderboard Dense Table */}
+                  <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] overflow-hidden card-blue-shadow-static">
+                    <div className="p-3.5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-alt)]">
+                      <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
+                        {t('Annual Standings Table')} ({rankingYear})
+                      </h3>
+                      <span className="text-xs font-mono text-[var(--muted)]">
+                        {rankings.length} {t('Clubs Registered')}
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="dense-table">
+                        <thead>
+                          <tr>
+                            <th>{t('Rank')}</th>
+                            <th>{t('Club Name')}</th>
+                            <th>{t('Department')}</th>
+                            <th>{t('Events (35%)')}</th>
+                            <th>{t('Sponsorship (35%)')}</th>
+                            <th>{t('Feedback (30%)')}</th>
+                            <th>{t('Final Score')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rankings.map((r) => (
+                            <tr key={r.id}>
+                              <td className="font-mono font-semibold text-[var(--text)]">
+                                #{r.rankPosition}
+                              </td>
+                              <td className="font-medium text-[var(--text)]">
+                                {t(r.club?.clubName || r.clubName || '')}
+                              </td>
+                              <td className="text-xs text-[var(--muted)]">
+                                {t(r.club?.department?.departmentName || 'General')}
+                              </td>
+                              <td className="font-mono text-[var(--muted)]">
+                                {Number(r.totalEventsScore).toFixed(1)}
+                              </td>
+                              <td className="font-mono text-[var(--muted)]">
+                                {Number(r.sponsorshipScore).toFixed(1)}
+                              </td>
+                              <td className="font-mono text-[var(--muted)]">
+                                {Number(r.feedbackScore).toFixed(1)}
+                              </td>
+                              <td className="font-mono font-semibold text-[var(--primary)]">
+                                {Number(r.finalScore).toFixed(2)} / 100
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Tab 2: Clubs Directory */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clubs.map((c) => (
+                    <div
+                      key={c.id}
+                      className="card-hover-lift bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] flex flex-col justify-between"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center font-mono font-semibold text-xs">
+                            {c.clubName.charAt(0)}
+                          </div>
+                          <span className="text-[10px] font-mono text-[var(--muted)] bg-[var(--surface-alt)] px-2 py-0.5 rounded-[4px] border border-[var(--border)]">
+                            Est. {new Date(c.establishedYear || 2020).getFullYear()}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="font-heading font-semibold text-sm text-[var(--text)]">{t(c.clubName, c.clubName)}</h3>
+                          <p className="text-xs text-[var(--primary)] font-medium mt-0.5">
+                            {t(c.department?.departmentName || 'Academic Department')}
+                          </p>
+                          <p className="text-xs text-[var(--muted)] mt-1.5 leading-relaxed line-clamp-2">
+                            {c.description ? t(c.description, c.description) : t('Dedicated to advancing student skills and campus engagement.')}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted)] font-mono">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-[var(--muted)]" strokeWidth={1.5} />
+                          <span>{c._count?.events ?? 0} {t('Campus Events')}</span>
                         </span>
+                        <span className="text-[var(--primary)] font-medium">{t('Active Campus Clubs')}</span>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           )}
 
-          {/* TAB VIEW 6: AUDIT LOGS */}
-          {activeTab === 'LOGS' && (
-            <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-3">
-                <h3 className="font-heading font-semibold text-base text-[var(--text)]">
-                  {t('Platform Security & Audit Trail')}
-                </h3>
-
-                <div className="overflow-x-auto">
-                  <table className="dense-table">
-                    <thead>
-                      <tr>
-                        <th>{t('Action')}</th>
-                        <th>{t('User')}</th>
-                        <th className="text-right">{t('Timestamp')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditLogs.map((log) => (
-                        <tr key={log.id}>
-                          <td className="font-mono text-xs text-[var(--primary)] font-medium">
-                            {log.action}
-                          </td>
-                          <td className="font-mono text-xs text-[var(--muted)]">
-                            {isBn ? 'ব্যবহারকারী #' : 'User #'}{log.userId ?? 'SYSTEM'}
-                          </td>
-                          <td className="font-mono text-xs text-[var(--muted)] text-right">
-                            {new Date(log.timestamp).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB VIEW 7: PROFILE */}
+          {/* TAB VIEW 5: PROFILE */}
           {activeTab === 'PROFILE' && (
             <div className="max-w-xl bg-[var(--surface)] p-5 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
               <div className="flex items-center gap-3">
@@ -1484,6 +1274,21 @@ export const AdminDashboardPage: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Modals */}
+      <EventDetailModal
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+      />
+      {proposeModalOpen && (
+        <ProposeEventModal
+          onClose={() => setProposeModalOpen(false)}
+          onSuccess={() => {
+            setProposeModalOpen(false);
+            loadAll();
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -88,6 +88,8 @@ const bnTranslations: Record<string, string> = {
 
   // Sponsorship Ledger
   'Record Corporate Sponsorship': 'কর্পোরেট স্পনসরশিপ রেকর্ড করুন',
+  'Corporate Sponsorship (Optional)': 'কর্পোরেট স্পনসরশিপ (ঐচ্ছিক)',
+  'Optional': 'ঐচ্ছিক',
   'Target Event': 'টার্গেট ইভেন্ট',
   'Select Event...': 'ইভেন্ট নির্বাচন করুন...',
   'Sponsor Organization': 'স্পনসর প্রতিষ্ঠান',

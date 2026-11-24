@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Club, Venue } from '../types';
-import { apiClubs, apiVenues, apiEvents } from '../services/api';
+import { Club, Venue, Sponsor } from '../types';
+import { apiClubs, apiVenues, apiEvents, apiSponsors } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { X, Mic, PlusCircle, Bookmark } from 'lucide-react';
+import { X, Mic, PlusCircle, Bookmark, DollarSign } from 'lucide-react';
 
 interface ProposeEventModalProps {
   onClose: () => void;
@@ -12,10 +13,12 @@ interface ProposeEventModalProps {
 
 export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, onSuccess }) => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
 
   const [clubs, setClubs] = useState<Club[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [isWorkshop, setIsWorkshop] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -34,9 +37,16 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
     prerequisites: '',
   });
 
+  const [sponsorForm, setSponsorForm] = useState({
+    sponsorId: '',
+    amountFunded: '',
+    sponsorshipTier: 'PLATINUM',
+  });
+
   useEffect(() => {
     apiClubs.getAll().then(setClubs);
     apiVenues.getAll().then(setVenues);
+    apiSponsors.getAll().then(setSponsors);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +84,30 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
         };
       }
 
-      await apiEvents.create(payload);
+      if (sponsorForm.sponsorId && Number(sponsorForm.amountFunded) > 0) {
+        payload.sponsorship = {
+          sponsorId: Number(sponsorForm.sponsorId),
+          amountFunded: Number(sponsorForm.amountFunded),
+          sponsorshipTier: sponsorForm.sponsorshipTier,
+        };
+      }
+
+      const createdEvent: any = await apiEvents.create(payload);
+
+      // In case backend didn't link atomically or using mock fallback, record explicitly as well
+      if (sponsorForm.sponsorId && Number(sponsorForm.amountFunded) > 0 && createdEvent?.id) {
+        try {
+          await apiSponsors.linkEventSponsor({
+            eventId: createdEvent.id,
+            sponsorId: Number(sponsorForm.sponsorId),
+            amountFunded: Number(sponsorForm.amountFunded),
+            sponsorshipTier: sponsorForm.sponsorshipTier,
+          });
+        } catch {
+          // Handled or already attached
+        }
+      }
+
       toast.success(
         isAdmin
           ? 'Event published successfully into catalog!'
@@ -294,6 +327,71 @@ export const ProposeEventModal: React.FC<ProposeEventModalProps> = ({ onClose, o
               </div>
             </div>
           )}
+
+          {/* Record Corporate Sponsorship (Matching Reference Pic) */}
+          <div className="space-y-3 bg-[var(--surface-alt)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow-static">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-[var(--primary)]" strokeWidth={1.5} />
+              <div>
+                <h3 className="font-heading font-semibold text-xs text-[var(--text)]">
+                  {t('Record Corporate Sponsorship')}
+                </h3>
+                <span className="text-[10px] font-mono text-[var(--muted)]">
+                  {t('Optional')} &bull; {t('Sponsorship funds boost club annual standings')}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                  {t('Sponsor Organization')}
+                </label>
+                <select
+                  value={sponsorForm.sponsorId}
+                  onChange={(e) => setSponsorForm({ ...sponsorForm, sponsorId: e.target.value })}
+                  className="w-full px-2.5 py-1.5 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] rounded-[4px]"
+                >
+                  <option value="">{t('Select Sponsor...')}</option>
+                  {sponsors.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.companyName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                  {t('Amount Funded ($)')}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="25000"
+                  value={sponsorForm.amountFunded}
+                  onChange={(e) => setSponsorForm({ ...sponsorForm, amountFunded: e.target.value })}
+                  className="w-full px-2.5 py-1.5 text-xs font-mono text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] rounded-[4px]"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-[11px] font-medium text-[var(--text)] mb-1">
+                  {t('Tier')}
+                </label>
+                <select
+                  value={sponsorForm.sponsorshipTier}
+                  onChange={(e) => setSponsorForm({ ...sponsorForm, sponsorshipTier: e.target.value })}
+                  className="w-full px-2.5 py-1.5 text-xs font-mono text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] rounded-[4px]"
+                >
+                  <option value="PLATINUM">{t('Platinum Tier')}</option>
+                  <option value="GOLD">{t('Gold Tier')}</option>
+                  <option value="SILVER">{t('Silver Tier')}</option>
+                  <option value="BRONZE">{t('Bronze Tier')}</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
           {/* Buttons */}
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">

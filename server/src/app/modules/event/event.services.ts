@@ -25,6 +25,7 @@ type CreateEventPayload = {
   startTime: Date;
   endTime: Date;
   workshop?: { speakerName: string; speakerBio?: string; prerequisites?: string };
+  sponsorship?: { sponsorId: number; amountFunded: number; sponsorshipTier?: string };
 };
 
 type UpdateEventPayload = Partial<Omit<CreateEventPayload, "workshop" | "venueId">> & { venueId?: number | null };
@@ -79,7 +80,7 @@ const getById = async (id: number) => {
 
 // Students propose events (PENDING, needs admin approval). Admin-created events are APPROVED directly.
 const create = async (user: CurrentUser, payload: CreateEventPayload) => {
-  const { workshop, ...eventData } = payload;
+  const { workshop, sponsorship, ...eventData } = payload;
 
   const event = await prisma.event.create({
     data: {
@@ -87,8 +88,22 @@ const create = async (user: CurrentUser, payload: CreateEventPayload) => {
       createdById: user.id,
       status: user.role === Role.ADMIN ? EventStatus.APPROVED : EventStatus.PENDING,
       ...(workshop && { workshop: { create: workshop } }),
+      ...(sponsorship && sponsorship.sponsorId && sponsorship.amountFunded
+        ? {
+            sponsors: {
+              create: {
+                sponsorId: sponsorship.sponsorId,
+                amountFunded: sponsorship.amountFunded,
+                sponsorshipTier: sponsorship.sponsorshipTier,
+              },
+            },
+          }
+        : {}),
     },
-    include: { workshop: true },
+    include: {
+      workshop: true,
+      sponsors: { include: { sponsor: true } },
+    },
   });
 
   await createAuditLog(user.id, "EVENT_CREATED", "events", event.id);

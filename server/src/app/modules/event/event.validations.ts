@@ -6,6 +6,12 @@ const workshopDetails = z.object({
   prerequisites: z.string().trim().optional(),
 });
 
+const sponsorshipDetails = z.object({
+  sponsorId: z.number().int().positive(),
+  amountFunded: z.number().positive("Amount must be greater than 0"),
+  sponsorshipTier: z.string().trim().optional(),
+});
+
 export const createEventSchema = z
   .object({
     clubId: z.number().int().positive(),
@@ -16,6 +22,7 @@ export const createEventSchema = z
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
     workshop: workshopDetails.optional(), // optional 1:1 workshop details
+    sponsorship: sponsorshipDetails.optional(), // optional sponsorship details
   })
   .refine((d) => d.endTime > d.startTime, { message: "endTime must be after startTime", path: ["endTime"] });
 

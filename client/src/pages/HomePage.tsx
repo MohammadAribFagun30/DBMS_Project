@@ -237,7 +237,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Operating Protocol / 4-Step Process */}
+      {/* Operating Protocol / 3-Step Process */}
       <section className="space-y-4">
         <div className="pb-2 border-b border-[var(--border)]">
           <h2 className="font-heading font-semibold text-lg text-[var(--text)]">
@@ -246,7 +246,7 @@ export const HomePage: React.FC = () => {
           <p className="text-xs text-[var(--muted)]">{t('Institutional event workflow from proposal to verification.')}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-2">
             <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
               01
@@ -270,16 +270,6 @@ export const HomePage: React.FC = () => {
           <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-2">
             <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
               03
-            </span>
-            <h3 className="font-medium text-xs text-[var(--text)]">{t('Venue Attendance')}</h3>
-            <p className="text-xs text-[var(--muted)] leading-relaxed">
-              {t('Attendance check-in desk confirms the pass, granting access and eligibility for certificates.')}
-            </p>
-          </div>
-
-          <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-2">
-            <span className="w-6 h-6 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] font-mono text-xs font-semibold text-[var(--text)] flex items-center justify-center">
-              04
             </span>
             <h3 className="font-medium text-xs text-[var(--text)]">{t('Feedback & Ranking')}</h3>
             <p className="text-xs text-[var(--muted)] leading-relaxed">
