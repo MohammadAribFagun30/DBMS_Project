@@ -54,6 +54,7 @@ import {
   Bookmark,
   LogOut,
   SlidersHorizontal,
+  ArrowUpDown,
   FileCheck
 } from 'lucide-react';
 
@@ -95,6 +96,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [selectedClub, setSelectedClub] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [eventSortBy, setEventSortBy] = useState<'RECENT' | 'DATE'>('RECENT');
 
   // Sponsorship form
   const [sponsorForm, setSponsorForm] = useState({
@@ -222,6 +224,25 @@ export const AdminDashboardPage: React.FC = () => {
     }
 
     return true;
+  });
+
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    if (eventSortBy === 'RECENT') {
+      const timeB = new Date(b.createdAt || 0).getTime();
+      const timeA = new Date(a.createdAt || 0).getTime();
+      if (timeB !== timeA && !isNaN(timeB) && !isNaN(timeA)) {
+        return timeB - timeA;
+      }
+      return b.id - a.id;
+    }
+
+    if (eventSortBy === 'DATE') {
+      const timeA = new Date(a.startTime).getTime();
+      const timeB = new Date(b.startTime).getTime();
+      return timeA - timeB;
+    }
+
+    return 0;
   });
 
   const isWorkspaceTab = [
@@ -958,9 +979,31 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Event Count & Sorting Control */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[var(--muted)] font-mono pt-1">
+                  <span>
+                    {t('Showing')} <strong className="text-[var(--text)]">{sortedEvents.length}</strong> {t('events')}
+                  </span>
+
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <span className="text-[11px] font-medium text-[var(--muted)] flex items-center gap-1">
+                      <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      {t('Sort By')}:
+                    </span>
+                    <select
+                      value={eventSortBy}
+                      onChange={(e) => setEventSortBy(e.target.value as 'RECENT' | 'DATE')}
+                      className="px-2.5 py-1 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] rounded-[4px] cursor-pointer focus:outline-none"
+                    >
+                      <option value="RECENT">{t('Recently Added (Default)')}</option>
+                      <option value="DATE">{t('Event Date')}</option>
+                    </select>
+                  </div>
+                </div>
+
                 {/* Event Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredEvents.map((event) => (
+                  {sortedEvents.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}

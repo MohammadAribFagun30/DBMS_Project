@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Registration, Certificate } from '../types';
+import { Registration, Certificate, EventItem } from '../types';
 import { apiRegistrations, apiCertificates } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -16,12 +16,13 @@ import {
   MapPin,
   QrCode,
   ShieldCheck,
-  FileCheck
+  FileCheck,
+  Clock
 } from 'lucide-react';
 
 export const StudentPortalPage: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, isBn } = useLanguage();
   const toast = useToast();
 
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -56,8 +57,15 @@ export const StudentPortalPage: React.FC = () => {
     }
   };
 
-  const attendedRegistrations = registrations.filter(
-    (r) => r.status === 'ATTENDED'
+  // Check if an event has concluded/ended
+  const isEventFinished = (event?: EventItem | null) => {
+    if (!event) return false;
+    return event.status === 'COMPLETED' || new Date(event.endTime) <= new Date();
+  };
+
+  // Student can give feedback ONLY when they participated and the event is finished
+  const eligibleForFeedback = registrations.filter(
+    (r) => (r.status === 'ATTENDED' || r.status === 'CONFIRMED') && isEventFinished(r.event)
   );
 
   return (
@@ -91,8 +99,8 @@ export const StudentPortalPage: React.FC = () => {
           </div>
           <div className="w-px h-6 bg-[var(--border)]" />
           <div className="px-2.5 py-0.5 text-center">
-            <span className="font-semibold text-sm block text-[var(--text)]">{attendedRegistrations.length}</span>
-            <span className="text-[var(--muted)] text-[10px] uppercase">{t('Attended', 'Attended')}</span>
+            <span className="font-semibold text-sm block text-[var(--text)]">{eligibleForFeedback.length}</span>
+            <span className="text-[var(--muted)] text-[10px] uppercase">{isBn ? 'সমাপ্ত' : 'Completed'}</span>
           </div>
           <div className="w-px h-6 bg-[var(--border)]" />
           <div className="px-2.5 py-0.5 text-center">
@@ -127,7 +135,7 @@ export const StudentPortalPage: React.FC = () => {
           }`}
         >
           <Star className="w-3.5 h-3.5" strokeWidth={1.5} />
-          {t('Pending Feedback')} ({attendedRegistrations.length})
+          {t('Pending Feedback')} ({eligibleForFeedback.length})
         </button>
 
         <button
@@ -198,17 +206,17 @@ export const StudentPortalPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+                  <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedPass(reg)}
                       className="btn-secondary text-xs py-1 px-2.5 rounded-[4px]"
                     >
                       <QrCode className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      View Pass
+                      {t('View Pass') || 'View Pass'}
                     </button>
 
-                    {reg.status === 'ATTENDED' && (
+                    {isEventFinished(reg.event) ? (
                       <button
                         type="button"
                         onClick={() =>
@@ -217,11 +225,16 @@ export const StudentPortalPage: React.FC = () => {
                             title: reg.event?.title || 'Event',
                           })
                         }
-                        className="btn-primary text-xs py-1 px-2.5 rounded-[4px]"
+                        className="btn-primary text-xs py-1 px-2.5 rounded-[4px] flex items-center gap-1 cursor-pointer"
                       >
                         <Star className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        Feedback
+                        {t('Feedback') || 'Feedback'}
                       </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[var(--muted)] flex items-center gap-1 bg-[var(--surface-alt)] px-2 py-1 rounded-[4px] border border-[var(--border)]">
+                        <Clock className="w-3 h-3 text-[var(--muted)]" strokeWidth={1.5} />
+                        {isBn ? 'ইভেন্ট সমাপ্ত হলে ফিডব্যাক দেওয়া যাবে' : 'Feedback unlocks after event'}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -236,28 +249,36 @@ export const StudentPortalPage: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-[var(--surface-alt)] p-4 rounded-[6px] border border-[var(--border)] text-xs text-[var(--muted)] max-w-xl">
             <span className="font-semibold text-[var(--text)] block mb-1">
-              Anonymous Student Feedback Protocol
+              {isBn ? 'বেনামী শিক্ষার্থী মূল্যায়ন প্রটোকল' : 'Anonymous Student Feedback Protocol'}
             </span>
-            Student ratings contribute 30% to the organizing club's official ranking.
-            No identity is linked to your submitted reviews.
+            {isBn
+              ? 'অংশগ্রহণকৃত ইভেন্টটি সমাপ্ত হওয়ার পর আপনি এখানে বেনামী রেটিং ও মতামত প্রদান করতে পারবেন। আপনার রেটিং আয়োজক ক্লাবের বার্ষিক র‍্যাঙ্কিংয়ে ৩০% অবদান রাখবে।'
+              : "Feedback unlocks after you have participated and the event has concluded. Student ratings contribute 30% to the organizing club's official ranking."}
           </div>
 
-          {attendedRegistrations.length === 0 ? (
+          {eligibleForFeedback.length === 0 ? (
             <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] p-10 text-center max-w-sm mx-auto space-y-2">
               <Star className="w-8 h-8 text-[var(--muted)] mx-auto" strokeWidth={1.5} />
-              <h3 className="font-heading font-semibold text-base text-[var(--text)]">No attended events yet</h3>
+              <h3 className="font-heading font-semibold text-base text-[var(--text)]">
+                {isBn ? 'কোনো সমাপ্ত ইভেন্ট নেই' : 'No concluded events yet'}
+              </h3>
               <p className="text-xs text-[var(--muted)]">
-                Feedback unlocks once your digital pass has been verified at the venue check-in desk.
+                {isBn
+                  ? 'আপনি যেসব ইভেন্টে অংশগ্রহণ করেছেন, সেগুলো শেষ হওয়ার পর এখানে ফিডব্যাক দেওয়ার অপশন আসবে।'
+                  : 'Feedback unlocks after you have participated and the event has concluded.'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {attendedRegistrations.map((reg) => (
+              {eligibleForFeedback.map((reg) => (
                 <div
                   key={reg.id}
-                  className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] flex flex-col justify-between space-y-3"
+                  className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] flex flex-col justify-between space-y-3 card-blue-shadow-static"
                 >
                   <div>
+                    <span className="inline-block px-1.5 py-0.5 rounded-[4px] bg-[#2E6B4D]/10 text-[#2E6B4D] text-[10px] font-mono font-medium mb-1">
+                      COMPLETED
+                    </span>
                     <h3 className="font-heading font-semibold text-sm text-[var(--text)]">
                       {reg.event?.title}
                     </h3>
@@ -274,9 +295,10 @@ export const StudentPortalPage: React.FC = () => {
                         title: reg.event?.title || 'Event',
                       })
                     }
-                    className="btn-primary text-xs py-1.5 px-3 w-full"
+                    className="btn-primary text-xs py-1.5 px-3 w-full flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    Submit Anonymous Rating
+                    <Star className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    {t('Submit Anonymous Rating') || 'Submit Anonymous Rating'}
                   </button>
                 </div>
               ))}

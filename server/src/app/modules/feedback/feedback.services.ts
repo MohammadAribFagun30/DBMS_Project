@@ -6,13 +6,25 @@ import { createAuditLog } from "../../utils/logger";
 
 type FeedbackPayload = { eventId: number; rating: number; comments?: string };
 
-// Only students who ATTENDED can submit. The feedback row itself stores no user id (anonymous).
+// Students who participated and where the event has concluded can submit feedback. The feedback row itself stores no user id (anonymous).
 const create = async (userId: number, payload: FeedbackPayload) => {
+  const event = await prisma.event.findUnique({
+    where: { id: payload.eventId },
+  });
+  if (!event) throw new AppError("Event not found", httpStatus.NOT_FOUND);
+
+  // Must have registered/participated in the event
   const registration = await prisma.registration.findUnique({
     where: { eventId_userId: { eventId: payload.eventId, userId } },
   });
-  if (!registration || registration.status !== RegistrationStatus.ATTENDED) {
-    throw new AppError("Only students who attended this event can submit feedback", httpStatus.FORBIDDEN);
+  if (!registration || (registration.status !== RegistrationStatus.ATTENDED && registration.status !== RegistrationStatus.CONFIRMED)) {
+    throw new AppError("You must have participated in this event to submit feedback", httpStatus.FORBIDDEN);
+  }
+
+  // Event must be finished/concluded
+  const isFinished = event.status === "COMPLETED" || new Date(event.endTime) <= new Date();
+  if (!isFinished) {
+    throw new AppError("Feedback is only available after the event has concluded", httpStatus.BAD_REQUEST);
   }
 
   const feedback = await prisma.feedback.create({ data: payload });

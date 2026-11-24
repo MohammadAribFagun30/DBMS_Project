@@ -1,7 +1,7 @@
 import React from 'react';
 import { EventItem } from '../types';
 import { StatusBadge, TypeBadge } from './Badge';
-import { Calendar, MapPin, Users, Mic, Star } from 'lucide-react';
+import { Calendar, MapPin, Users, Mic, Star, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -110,20 +110,26 @@ export const EventCard: React.FC<EventCardProps> = ({
             {t('Details')}
           </button>
 
-          {!isAdmin && onRegister ? (
+          {isRegistered ? (
+            <div
+              className="text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium font-mono bg-[#2E6B4D] text-white border border-[#2E6B4D] shadow-xs flex items-center justify-center gap-1 cursor-default select-none"
+              title={t('Registered')}
+            >
+              <Check className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
+              <span className="truncate">{t('Registered')}</span>
+            </div>
+          ) : !isAdmin && onRegister ? (
             <button
               type="button"
-              disabled={isRegistered || isCompleted || event.status !== 'APPROVED'}
+              disabled={isCompleted || event.status !== 'APPROVED'}
               onClick={() => onRegister(event)}
               className={`text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium transition-colors ${
-                isRegistered
-                  ? 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--border)] cursor-default'
-                  : isCompleted
+                isCompleted
                   ? 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--border)] cursor-not-allowed'
                   : 'btn-primary'
               }`}
             >
-              {isRegistered ? t('Registered') : isCompleted ? t('Closed') : t('Register')}
+              {isCompleted ? t('Closed') : t('Register')}
             </button>
           ) : (
             <button

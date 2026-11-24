@@ -14,11 +14,12 @@ import {
   PlusCircle,
   Calendar,
   SlidersHorizontal,
+  ArrowUpDown,
   X
 } from 'lucide-react';
 
 export const EventsPage: React.FC = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const toast = useToast();
 
@@ -26,15 +27,17 @@ export const EventsPage: React.FC = () => {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [registeredEventIds, setRegisteredEventIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Filters
+  // Filters & Sorting
   const [search, setSearch] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [selectedClub, setSelectedClub] = useState<string>('');
   const [selectedVenue, setSelectedVenue] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [sortBy, setSortBy] = useState<'RECENT' | 'DATE'>('RECENT');
 
   // Modals
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
@@ -43,7 +46,7 @@ export const EventsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAuthenticated, isAdmin]);
 
   const loadData = async () => {
     try {
@@ -58,6 +61,15 @@ export const EventsPage: React.FC = () => {
       setClubs(cl);
       setVenues(vn);
       setDepartments(dp);
+
+      if (isAuthenticated && !isAdmin) {
+        try {
+          const myRegs = await apiRegistrations.getMyRegistrations();
+          setRegisteredEventIds(new Set(myRegs.map((r) => r.eventId)));
+        } catch {
+          // ignore error
+        }
+      }
     } catch {
       toast.error('Failed to load events data');
     } finally {
@@ -69,6 +81,7 @@ export const EventsPage: React.FC = () => {
     try {
       const reg = await apiRegistrations.register(event.id);
       toast.success(`Registered successfully! Pass #${reg.passNumber} generated.`);
+      setRegisteredEventIds((prev) => new Set([...prev, event.id]));
       setTicketModalData(reg);
       loadData();
     } catch (err: any) {
@@ -111,6 +124,26 @@ export const EventsPage: React.FC = () => {
     }
 
     return true;
+  });
+
+  // Sorting pipeline: Default to recently added event first, or event schedule date
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    if (sortBy === 'RECENT') {
+      const timeB = new Date(b.createdAt || 0).getTime();
+      const timeA = new Date(a.createdAt || 0).getTime();
+      if (timeB !== timeA && !isNaN(timeB) && !isNaN(timeA)) {
+        return timeB - timeA;
+      }
+      return b.id - a.id;
+    }
+
+    if (sortBy === 'DATE') {
+      const timeA = new Date(a.startTime).getTime();
+      const timeB = new Date(b.startTime).getTime();
+      return timeA - timeB;
+    }
+
+    return 0;
   });
 
   const availableClubs = selectedDepartment
@@ -265,7 +298,7 @@ export const EventsPage: React.FC = () => {
             <div key={i} className="h-64 bg-[var(--surface)] border border-[var(--border)] rounded-[6px] animate-pulse" />
           ))}
         </div>
-      ) : filteredEvents.length === 0 ? (
+      ) : sortedEvents.length === 0 ? (
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[6px] p-10 text-center space-y-2">
           <Calendar className="w-8 h-8 text-[var(--muted)] mx-auto" strokeWidth={1.5} />
           <h3 className="font-heading font-semibold text-base text-[var(--text)]">No campus events match your criteria</h3>
@@ -275,16 +308,34 @@ export const EventsPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs text-[var(--muted)] font-mono">
-            <span>Showing <strong className="text-[var(--text)]">{filteredEvents.length}</strong> events</span>
-            <span>IIUC Active Catalog</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[var(--muted)] font-mono">
+            <span>
+              {t('Showing')} <strong className="text-[var(--text)]">{sortedEvents.length}</strong> {t('events')}
+            </span>
+
+            {/* Event Sorting Control */}
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <span className="text-[11px] font-medium text-[var(--muted)] flex items-center gap-1">
+                <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={1.5} />
+                {t('Sort By')}:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'RECENT' | 'DATE')}
+                className="px-2.5 py-1 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] rounded-[4px] cursor-pointer focus:outline-none"
+              >
+                <option value="RECENT">{t('Recently Added (Default)')}</option>
+                <option value="DATE">{t('Event Date')}</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredEvents.map((event) => (
+            {sortedEvents.map((event) => (
               <EventCard
                 key={event.id}
                 event={event}
+                isRegistered={registeredEventIds.has(event.id)}
                 onSelect={setSelectedEvent}
                 onRegister={isAdmin ? undefined : handleRegister}
               />
@@ -296,6 +347,7 @@ export const EventsPage: React.FC = () => {
       {/* Modals */}
       <EventDetailModal
         event={selectedEvent}
+        isRegistered={selectedEvent ? registeredEventIds.has(selectedEvent.id) : false}
         onClose={() => setSelectedEvent(null)}
         onRegister={isAdmin ? undefined : handleRegister}
       />

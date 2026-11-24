@@ -20,13 +20,14 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 
 export const HomePage: React.FC = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const toast = useToast();
 
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [topRankings, setTopRankings] = useState<ClubRanking[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [registeredEventIds, setRegisteredEventIds] = useState<Set<number>>(new Set());
 
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [proposeModalOpen, setProposeModalOpen] = useState(false);
@@ -34,7 +35,7 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAuthenticated, isAdmin]);
 
   const loadData = async () => {
     const events = await apiEvents.getAll({ upcoming: true });
@@ -45,12 +46,22 @@ export const HomePage: React.FC = () => {
 
     const dashboardStats = await apiDashboard.getStats();
     setStats(dashboardStats);
+
+    if (isAuthenticated && !isAdmin) {
+      try {
+        const myRegs = await apiRegistrations.getMyRegistrations();
+        setRegisteredEventIds(new Set(myRegs.map((r) => r.eventId)));
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const handleRegister = async (event: EventItem) => {
     try {
       const reg = await apiRegistrations.register(event.id);
       reg.event = event;
+      setRegisteredEventIds((prev) => new Set([...prev, event.id]));
       setTicketModalData(reg);
       toast.success(`Registered successfully! Pass: ${reg.passNumber}`);
       loadData();
@@ -164,6 +175,7 @@ export const HomePage: React.FC = () => {
             <EventCard
               key={event.id}
               event={event}
+              isRegistered={registeredEventIds.has(event.id)}
               onSelect={setSelectedEvent}
               onRegister={isAdmin ? undefined : handleRegister}
             />
@@ -282,6 +294,7 @@ export const HomePage: React.FC = () => {
       {/* Modals */}
       <EventDetailModal
         event={selectedEvent}
+        isRegistered={selectedEvent ? registeredEventIds.has(selectedEvent.id) : false}
         onClose={() => setSelectedEvent(null)}
         onRegister={isAdmin ? undefined : handleRegister}
       />

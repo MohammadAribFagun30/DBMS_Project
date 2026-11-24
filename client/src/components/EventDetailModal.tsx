@@ -2,6 +2,7 @@ import React from 'react';
 import { EventItem } from '../types';
 import { StatusBadge, TypeBadge } from './Badge';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   X,
   Calendar,
@@ -9,7 +10,8 @@ import {
   Users,
   Mic,
   Ticket,
-  Star
+  Star,
+  Check
 } from 'lucide-react';
 
 interface EventDetailModalProps {
@@ -26,6 +28,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   isRegistered = false,
 }) => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   if (!event) return null;
 
   const startDate = new Date(event.startTime);
@@ -153,10 +156,15 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             onClick={onClose}
             className="btn-secondary"
           >
-            Close
+            {t('Close')}
           </button>
 
-          {!isAdmin && isApproved && !isCompleted && onRegister && (
+          {isRegistered ? (
+            <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[4px] bg-[#2E6B4D] text-white text-xs font-mono font-medium shadow-xs select-none">
+              <Check className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+              <span>{t('Registered')}</span>
+            </div>
+          ) : !isAdmin && isApproved && !isCompleted && onRegister ? (
             <button
               onClick={() => {
                 onRegister(event);
@@ -165,9 +173,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               className="btn-primary flex items-center gap-2"
             >
               <Ticket className="w-3.5 h-3.5" strokeWidth={1.5} />
-              Get Digital Entry Pass
+              {t('Get Digital Entry Pass', 'Get Digital Entry Pass')}
             </button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
