@@ -32,7 +32,13 @@ export const EventCard: React.FC<EventCardProps> = ({
     hour12: true,
   });
 
+  // Real-life time check: If event has ended in the real world or is marked COMPLETED, it is closed
+  const now = new Date();
+  const eventEndTime = new Date(event.endTime || event.startTime);
+  const isPast = eventEndTime.getTime() <= now.getTime();
   const isCompleted = event.status === 'COMPLETED';
+  const isClosed = isCompleted || isPast || event.status === 'CANCELLED' || event.status === 'REJECTED';
+  const effectiveStatus = (event.status === 'APPROVED' && isPast) ? 'COMPLETED' : event.status;
 
   return (
     <div className="card-hover-lift bg-[var(--surface)] rounded-[6px] border border-[var(--border)] flex flex-col overflow-hidden">
@@ -40,7 +46,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       <div className="p-4 pb-2.5">
         <div className="flex items-center justify-between gap-2 mb-2">
           <TypeBadge type={event.eventType} />
-          <StatusBadge status={event.status} />
+          <StatusBadge status={effectiveStatus} />
         </div>
 
         <h3
@@ -110,9 +116,17 @@ export const EventCard: React.FC<EventCardProps> = ({
             {t('Details')}
           </button>
 
-          {isRegistered ? (
+          {isClosed ? (
+            <button
+              type="button"
+              disabled
+              className="text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--border)] cursor-not-allowed select-none"
+            >
+              {t('Closed')}
+            </button>
+          ) : isRegistered ? (
             <div
-              className="text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium font-mono bg-[#2E6B4D] text-white border border-[#2E6B4D] shadow-xs flex items-center justify-center gap-1 cursor-default select-none"
+              className="btn-registered-badge text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium font-mono shadow-xs flex items-center justify-center gap-1 cursor-default select-none"
               title={t('Registered')}
             >
               <Check className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
@@ -121,15 +135,11 @@ export const EventCard: React.FC<EventCardProps> = ({
           ) : !isAdmin && onRegister ? (
             <button
               type="button"
-              disabled={isCompleted || event.status !== 'APPROVED'}
+              disabled={event.status !== 'APPROVED'}
               onClick={() => onRegister(event)}
-              className={`text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium transition-colors ${
-                isCompleted
-                  ? 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--border)] cursor-not-allowed'
-                  : 'btn-primary'
-              }`}
+              className="btn-primary btn-register-card text-xs py-1.5 px-2 w-full text-center truncate rounded-[4px] font-medium"
             >
-              {isCompleted ? t('Closed') : t('Register')}
+              {t('Register')}
             </button>
           ) : (
             <button

@@ -12,7 +12,6 @@ import {
   Compass,
   Trophy,
   Users,
-  Award,
   DollarSign,
   PlusCircle,
   ChevronRight
@@ -111,7 +110,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* KPI Stats Counter Row */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
           <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
             <Compass className="w-4 h-4" strokeWidth={1.5} />
@@ -141,16 +140,6 @@ export const HomePage: React.FC = () => {
               ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 325000).toLocaleString()}
             </p>
             <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Sponsorships')}</span>
-          </div>
-        </div>
-
-        <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
-            <Award className="w-4 h-4" strokeWidth={1.5} />
-          </div>
-          <div>
-            <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalCertificates ?? 890}</p>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Verified Certs')}</span>
           </div>
         </div>
       </section>

@@ -32,8 +32,19 @@ type UpdateEventPayload = Partial<Omit<CreateEventPayload, "workshop" | "venueId
 
 type CurrentUser = { id: number; role: Role };
 
-const getAll = (query: EventQuery) =>
-  prisma.event.findMany({
+const getAll = async (query: EventQuery) => {
+  // Sync any past events to COMPLETED based on real-life current time
+  await prisma.event.updateMany({
+    where: {
+      status: EventStatus.APPROVED,
+      endTime: { lt: new Date() },
+    },
+    data: {
+      status: EventStatus.COMPLETED,
+    },
+  });
+
+  return prisma.event.findMany({
     where: {
       ...(query.status && { status: query.status as EventStatus }),
       ...(query.clubId && { clubId: Number(query.clubId) }),
@@ -59,6 +70,7 @@ const getAll = (query: EventQuery) =>
     },
     orderBy: { startTime: "asc" },
   });
+};
 
 const getById = async (id: number) => {
   const event = await prisma.event.findUnique({

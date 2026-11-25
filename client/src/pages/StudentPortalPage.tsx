@@ -225,9 +225,9 @@ export const StudentPortalPage: React.FC = () => {
                             title: reg.event?.title || 'Event',
                           })
                         }
-                        className="btn-primary text-xs py-1 px-2.5 rounded-[4px] flex items-center gap-1 cursor-pointer"
+                        className="btn-primary btn-feedback-star text-xs py-1 px-2.5 rounded-[4px] flex items-center gap-1 cursor-pointer"
                       >
-                        <Star className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        <Star className="w-3.5 h-3.5 fill-current" strokeWidth={1.5} />
                         {t('Feedback') || 'Feedback'}
                       </button>
                     ) : (

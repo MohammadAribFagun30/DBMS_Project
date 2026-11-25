@@ -45,7 +45,7 @@ export const CertificateVerifyPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-8 space-y-8 bg-[var(--bg)] text-[var(--text)]">
+    <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-8 space-y-8 text-[var(--text)]">
       {/* Institutional Header */}
       <div className="border-b border-[var(--border)] pb-4">
         <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--primary)] font-semibold">
@@ -77,22 +77,34 @@ export const CertificateVerifyPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary text-xs py-1.5 px-4 disabled:opacity-60"
+                className="btn-primary btn-verify-badge text-xs py-1.5 px-4 disabled:opacity-60 font-medium"
               >
                 {loading ? t('Validating...') : t('Verify Record')}
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-mono text-[var(--muted)] pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-[var(--muted)] pt-1">
             <span>{t('Quick test sample:')}</span>
-            <button
-              type="button"
-              onClick={() => setCertNum('CERT-2026-084')}
-              className="text-[var(--primary)] hover:underline"
-            >
-              CERT-2026-084
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setCertNum('CERT-2026-084')}
+                className="text-[var(--primary)] dark:text-[#60A5FA] hover:underline font-semibold cursor-pointer"
+                title="Autonomous Robotics & ROS2 Hands-on Lab"
+              >
+                CERT-2026-084
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => setCertNum('CERT-13')}
+                className="text-[var(--primary)] dark:text-[#60A5FA] hover:underline cursor-pointer"
+                title="Modern Web & Cloud Deployment Essentials"
+              >
+                CERT-13
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -108,7 +120,7 @@ export const CertificateVerifyPage: React.FC = () => {
                   {t('Authentic Verified Record')}
                 </span>
                 <h3 className="font-mono text-base font-semibold text-[var(--text)]">
-                  {result.certificateNumber}
+                  {result.certificateNumber || (result as any).certificateUrl?.split('/').pop()?.replace('.pdf', '') || certNum}
                 </h3>
               </div>
             </div>
@@ -142,7 +154,7 @@ export const CertificateVerifyPage: React.FC = () => {
             </div>
             <div className="flex justify-between py-1">
               <span className="text-[var(--muted)]">{t('Issue Date:')}</span>
-              <span className="text-[var(--text)]">{new Date(result.issueDate).toLocaleDateString()}</span>
+              <span className="text-[var(--text)]">{new Date(result.issueDate || (result as any).issuedAt || Date.now()).toLocaleDateString()}</span>
             </div>
           </div>
         </div>

@@ -34,13 +34,13 @@ export const TicketPassModal: React.FC<TicketPassModalProps> = ({ registration, 
         <div id="printable-ticket" className="p-5">
           {/* Ticket Header */}
           <div className="text-center pb-4 border-b border-dashed border-[var(--border)]">
-            <div className="w-8 h-8 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] mx-auto flex items-center justify-center mb-2">
+            <div className="w-8 h-8 rounded-[4px] bg-[var(--primary)] text-[var(--primary-contrast)] dark:bg-[#D4A24C]/20 dark:text-[#E5B55E] dark:border dark:border-[#D4A24C]/40 mx-auto flex items-center justify-center mb-2">
               <Bookmark className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)] block">
               International Islamic University Chittagong
             </span>
-            <span className="text-xs font-mono font-medium uppercase tracking-wider text-[var(--primary)] block mt-0.5">
+            <span className="text-xs font-mono font-medium uppercase tracking-wider text-[var(--primary)] dark:text-[#D4A24C] block mt-0.5">
               Official Digital Event Pass
             </span>
             <h3 className="font-heading font-semibold text-base text-[var(--text)] mt-1">
@@ -58,7 +58,7 @@ export const TicketPassModal: React.FC<TicketPassModalProps> = ({ registration, 
                 <span className="text-[10px] uppercase font-mono text-[var(--muted)] block">
                   Pass Number
                 </span>
-                <span className="font-mono text-sm font-semibold text-[var(--primary)]">
+                <span className="font-mono text-sm font-semibold text-[var(--primary)] dark:text-[#D4A24C]">
                   {registration.passNumber}
                 </span>
               </div>
@@ -105,7 +105,7 @@ export const TicketPassModal: React.FC<TicketPassModalProps> = ({ registration, 
             <button
               type="button"
               onClick={handlePrint}
-              className="btn-primary w-full text-xs py-1.5"
+              className="btn-primary btn-print-pass w-full text-xs py-1.5 font-medium"
             >
               <Printer className="w-3.5 h-3.5" strokeWidth={1.5} />
               Print / Save PDF

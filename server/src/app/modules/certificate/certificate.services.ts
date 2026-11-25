@@ -59,14 +59,30 @@ const issueForEvent = async (adminId: number, eventId: number) => {
   return { eventId, issuedCount: pending.length };
 };
 
-const getMy = (userId: number) =>
-  prisma.certificate.findMany({
+const formatCertificate = (cert: any) => {
+  if (!cert) return null;
+  const match = cert.certificateUrl ? cert.certificateUrl.match(/CERT-[A-Za-z0-9-]+/) : null;
+  const certNumber = match ? match[0].replace('.pdf', '') : `CERT-2026-${String(cert.registrationId || cert.id).padStart(3, '0')}`;
+  return {
+    ...cert,
+    certificateNumber: certNumber,
+    issueDate: cert.issuedAt,
+  };
+};
+
+const getMy = async (userId: number) => {
+  const list = await prisma.certificate.findMany({
     where: { registration: { userId } },
     include: fullInclude,
     orderBy: { issuedAt: "desc" },
   });
+  return list.map(formatCertificate);
+};
 
-const getAll = () => prisma.certificate.findMany({ include: fullInclude, orderBy: { issuedAt: "desc" } });
+const getAll = async () => {
+  const list = await prisma.certificate.findMany({ include: fullInclude, orderBy: { issuedAt: "desc" } });
+  return list.map(formatCertificate);
+};
 
 // Students can view/download only their own certificate.
 const getById = async (user: CurrentUser, id: number) => {
@@ -75,22 +91,29 @@ const getById = async (user: CurrentUser, id: number) => {
   if (user.role !== Role.ADMIN && certificate.registration.userId !== user.id) {
     throw new AppError("You can only view your own certificates", httpStatus.FORBIDDEN);
   }
-  return certificate;
+  return formatCertificate(certificate);
 };
 
 const verify = async (certificateNumber: string) => {
-  const numericId = parseInt(certificateNumber.replace(/[^0-9]/g, ""), 10);
+  const cleanStr = certificateNumber.trim();
+  const digits = cleanStr.replace(/[^0-9]/g, "");
+  const numericId = parseInt(digits, 10);
+  const lastDigits = digits.length >= 2 ? parseInt(digits.slice(-2), 10) : numericId;
+  const last3Digits = digits.length >= 3 ? parseInt(digits.slice(-3), 10) : numericId;
+
   const cert = await prisma.certificate.findFirst({
     where: {
       OR: [
+        { certificateUrl: { contains: cleanStr, mode: "insensitive" } },
         ...(isNaN(numericId) ? [] : [{ id: numericId }, { registrationId: numericId }]),
-        { certificateUrl: { contains: certificateNumber } },
+        ...(isNaN(lastDigits) ? [] : [{ id: lastDigits }, { registrationId: lastDigits }]),
+        ...(isNaN(last3Digits) ? [] : [{ id: last3Digits }, { registrationId: last3Digits }]),
       ],
     },
     include: fullInclude,
   });
   if (!cert) throw new AppError("Certificate not found or invalid", httpStatus.NOT_FOUND);
-  return cert;
+  return formatCertificate(cert);
 };
 
 export const certificateServices = { issue, issueForEvent, getMy, getAll, getById, verify };

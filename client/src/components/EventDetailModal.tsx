@@ -43,8 +43,13 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   const formattedTime = `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
-  const isCompleted = event.status === 'COMPLETED';
-  const isApproved = event.status === 'APPROVED';
+  // Real-life time check: If event has ended in the real world or is marked COMPLETED, it is closed
+  const now = new Date();
+  const eventEndTime = new Date(event.endTime || event.startTime);
+  const isPast = eventEndTime.getTime() <= now.getTime();
+  const isCompleted = event.status === 'COMPLETED' || isPast;
+  const isApproved = event.status === 'APPROVED' && !isPast;
+  const effectiveStatus = (event.status === 'APPROVED' && isPast) ? 'COMPLETED' : event.status;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-center justify-center p-4">
@@ -60,7 +65,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
           <div className="flex items-center gap-2 mb-2">
             <TypeBadge type={event.eventType} />
-            <StatusBadge status={event.status} />
+            <StatusBadge status={effectiveStatus} />
           </div>
 
           <h2 className="text-xl font-heading font-semibold text-[var(--text)] leading-snug">{event.title}</h2>
@@ -159,18 +164,22 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             {t('Close')}
           </button>
 
-          {isRegistered ? (
-            <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[4px] bg-[#2E6B4D] text-white text-xs font-mono font-medium shadow-xs select-none">
+          {isCompleted ? (
+            <span className="px-3.5 py-1.5 rounded-[4px] bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] text-xs font-mono font-medium select-none">
+              {t('Closed')}
+            </span>
+          ) : isRegistered ? (
+            <div className="btn-registered-badge flex items-center gap-1.5 px-3.5 py-1.5 rounded-[4px] text-xs font-mono font-medium shadow-xs select-none">
               <Check className="w-4 h-4 shrink-0" strokeWidth={2.5} />
               <span>{t('Registered')}</span>
             </div>
-          ) : !isAdmin && isApproved && !isCompleted && onRegister ? (
+          ) : !isAdmin && isApproved && onRegister ? (
             <button
               onClick={() => {
                 onRegister(event);
                 onClose();
               }}
-              className="btn-primary flex items-center gap-2"
+              className="btn-primary btn-register-card flex items-center gap-2"
             >
               <Ticket className="w-3.5 h-3.5" strokeWidth={1.5} />
               {t('Get Digital Entry Pass', 'Get Digital Entry Pass')}

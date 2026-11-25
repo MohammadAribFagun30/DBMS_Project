@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { AppBackground } from './components/AppBackground';
 
 // Pages
 import { WelcomePage } from './pages/WelcomePage';
@@ -38,9 +39,10 @@ export const AppContent: React.FC = () => {
   const isMinimalFooterRoute = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans selection:bg-indigo-600 selection:text-white transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text)] font-sans relative selection:bg-[var(--primary)] selection:text-[var(--primary-contrast)] transition-colors duration-200">
+      {!isAdminRoute && <AppBackground />}
       {!isAdminRoute && <Navbar />}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col relative z-10">
         <Routes>
           <Route path="/" element={<WelcomePage />} />
           <Route path="/home" element={<HomePage />} />

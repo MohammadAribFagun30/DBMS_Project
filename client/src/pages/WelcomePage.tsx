@@ -21,7 +21,7 @@ export const WelcomePage: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[var(--bg)] text-[var(--text)] transition-colors scroll-smooth">
+    <div className="w-full text-[var(--text)] transition-colors scroll-smooth">
       {/* SECTION 1: OVERVIEW & HEADER */}
       <section
         id="overview"

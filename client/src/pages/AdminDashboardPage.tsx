@@ -28,6 +28,7 @@ import { StatusBadge, TypeBadge } from '../components/Badge';
 import { EventCard } from '../components/EventCard';
 import { EventDetailModal } from '../components/EventDetailModal';
 import { ProposeEventModal } from '../components/ProposeEventModal';
+import { AdminBackground } from '../components/AdminBackground';
 import {
   LayoutGrid,
   Folder,
@@ -38,7 +39,6 @@ import {
   ShieldCheck,
   CheckCircle,
   Clock,
-  Award,
   DollarSign,
   Trophy,
   Calendar,
@@ -46,7 +46,6 @@ import {
   Search,
   PlusCircle,
   RefreshCw,
-  ExternalLink,
   Building2,
   X,
   Menu,
@@ -280,13 +279,9 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)] font-sans relative overflow-x-hidden">
-      {/* Background ambient luminous blurs for realistic glassmorphism depth */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-24 -left-20 w-[420px] h-[420px] rounded-full bg-[#B36836]/10 dark:bg-[#5DA583]/10 blur-3xl" />
-        <div className="absolute top-1/2 -left-32 w-[380px] h-[380px] rounded-full bg-[#8A6414]/8 dark:bg-[#74B898]/8 blur-3xl" />
-        <div className="absolute bottom-0 left-10 w-80 h-80 rounded-full bg-[#3B2418]/5 dark:bg-white/5 blur-3xl" />
-      </div>
+    <div className="min-h-screen flex bg-transparent text-[var(--text)] font-sans relative overflow-x-hidden selection:bg-[var(--primary)] selection:text-[var(--primary-contrast)]">
+      {/* Dynamic Animated Enterprise Command Canvas Background */}
+      <AdminBackground />
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpenMobile && (
@@ -296,11 +291,11 @@ export const AdminDashboardPage: React.FC = () => {
         />
       )}
 
-      {/* LEFT SIDEBAR - Expanded (w-64) or Collapsed Rail (w-[72px]) Glassmorphism */}
+      {/* LEFT SIDEBAR - Fixed to viewport so it never scrolls away */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 h-screen sidebar-glass flex flex-col justify-between transition-all shrink-0 overflow-visible ${
+        className={`fixed top-0 bottom-0 left-0 z-50 h-screen sidebar-glass flex flex-col justify-between transition-all shrink-0 overflow-y-auto overflow-x-hidden ${
           sidebarOpenMobile ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
-        } ${sidebarOpen ? 'lg:w-64' : 'lg:w-[72px]'}`}
+        } ${sidebarOpen ? 'w-64' : 'w-[72px]'}`}
       >
         {sidebarOpen ? (
           /* EXPANDED FULL GLASS SIDEBAR VIEW */
@@ -467,15 +462,6 @@ export const AdminDashboardPage: React.FC = () => {
                   <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </button>
               </div>
-
-              {/* Public Portal Link */}
-              <Link
-                to="/home"
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] rounded-[8px] hover:bg-white/25 dark:hover:bg-white/5 transition-all"
-              >
-                <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>{t('Campus Portal')}</span>
-              </Link>
             </div>
           </div>
         ) : (
@@ -569,13 +555,6 @@ export const AdminDashboardPage: React.FC = () => {
 
             {/* Bottom Actions */}
             <div className="space-y-1 flex flex-col items-center border-t border-white/40 dark:border-white/10 pt-2 w-full">
-              <Link
-                to="/home"
-                className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] hover:bg-white/30 dark:hover:bg-white/5 transition-all"
-                title="Public Campus Portal"
-              >
-                <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
-              </Link>
               <button
                 type="button"
                 onClick={() => {
@@ -593,7 +572,11 @@ export const AdminDashboardPage: React.FC = () => {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-[margin] duration-200 ${
+          sidebarOpen ? 'lg:ml-64' : 'lg:ml-[72px]'
+        }`}
+      >
         {/* TOP BAR - Frosted Glass */}
         <header className="sticky top-0 z-30 h-14 backdrop-blur-2xl bg-white/65 dark:bg-[#1D1C17]/75 border-b border-white/60 dark:border-white/10 flex items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
@@ -660,9 +643,9 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 1: DASHBOARD OVERVIEW */}
           {activeTab === 'DASHBOARD' && (
             <div className="space-y-6">
-              {/* 4 Metric Cards - Dense, 6px radius, with suitable bluish shadow */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+              {/* Metric Cards - Dense, 6px radius, with suitable bluish shadow */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="admin-glass-card p-3.5 rounded-[6px] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Calendar className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -676,7 +659,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                <div className="admin-glass-card p-3.5 rounded-[6px] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Users className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -690,7 +673,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                <div className="admin-glass-card p-3.5 rounded-[6px] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <DollarSign className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -703,24 +686,10 @@ export const AdminDashboardPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
-                    <Award className="w-4 h-4" strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <p className="font-mono text-xl font-semibold text-[var(--text)]">
-                      {stats?.totalCertificates ?? 1}
-                    </p>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
-                      {t('Verified Certs')}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Annual Rankings Preview Table */}
-              <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] card-blue-shadow-static p-4 space-y-3">
+              <div className="admin-glass-card rounded-[6px] card-blue-shadow-static p-4 space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2">
                     <Trophy className="w-4 h-4 text-[var(--highlight)]" strokeWidth={1.5} />
@@ -779,7 +748,7 @@ export const AdminDashboardPage: React.FC = () => {
           {activeTab === 'EVENTS_WORKSHOPS' && (
             <div className="space-y-6">
               {/* Institutional Left-Aligned Header */}
-              <section className="bg-[var(--surface)] p-6 sm:p-8 rounded-[6px] border border-[var(--border)] card-blue-shadow-static">
+              <section className="admin-glass-card p-6 sm:p-8 rounded-[6px] card-blue-shadow-static">
                 <div className="max-w-2xl space-y-3">
                   <span className="text-xs font-mono uppercase tracking-wider text-[var(--primary)] font-semibold">
                     {t('IIUC Central Campus Management')}
@@ -810,8 +779,8 @@ export const AdminDashboardPage: React.FC = () => {
               </section>
 
               {/* KPI Stats Counter Row */}
-              <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+              <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="admin-glass-card p-3.5 rounded-[6px] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Compass className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -821,7 +790,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                <div className="admin-glass-card p-3.5 rounded-[6px] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <Users className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -831,7 +800,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
+                <div className="admin-glass-card p-3.5 rounded-[6px] card-blue-shadow flex items-center gap-3">
                   <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
                     <DollarSign className="w-4 h-4" strokeWidth={1.5} />
                   </div>
@@ -840,16 +809,6 @@ export const AdminDashboardPage: React.FC = () => {
                       ${(stats?.totalSponsorship ? Number(stats.totalSponsorship) : 210000).toLocaleString()}
                     </p>
                     <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Sponsorships')}</span>
-                  </div>
-                </div>
-
-                <div className="bg-[var(--surface)] p-3.5 rounded-[6px] border border-[var(--border)] card-blue-shadow flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-[4px] bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] flex items-center justify-center shrink-0">
-                    <Award className="w-4 h-4" strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <p className="font-mono text-xl font-semibold text-[var(--text)]">{stats?.totalCertificates ?? 1}</p>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">{t('Verified Certs')}</span>
                   </div>
                 </div>
               </section>
@@ -862,7 +821,7 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
 
                 {/* Search & Filter Toolbar (Matching Reference Image) */}
-                <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] space-y-3 card-blue-shadow-static">
+                <div className="admin-glass-card p-4 rounded-[6px] space-y-3 card-blue-shadow-static">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
                     {/* Search Keywords */}
                     <div className="relative sm:col-span-2 lg:col-span-2">
@@ -1018,7 +977,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* TAB VIEW 3: SPONSORSHIP LEDGER */}
           {activeTab === 'SPONSORSHIP' && (
             <div className="space-y-4">
-              <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
+              <div className="admin-glass-card p-4 rounded-[6px] card-blue-shadow-static space-y-4">
                 <h3 className="font-heading font-semibold text-base text-[var(--text)]">
                   {t('Record Corporate Sponsorship')}
                 </h3>
@@ -1150,7 +1109,7 @@ export const AdminDashboardPage: React.FC = () => {
               {clubTab === 'RANKINGS' ? (
                 <div className="space-y-4">
                   {/* Algorithm Info Card & Year Selector */}
-                  <div className="bg-[var(--surface)] p-4 rounded-[6px] border border-[var(--border)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 card-blue-shadow-static">
+                  <div className="admin-glass-card p-4 rounded-[6px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 card-blue-shadow-static">
                     <div className="space-y-1">
                       <span className="text-[10px] font-mono text-[var(--highlight)] uppercase tracking-wider font-semibold">
                         {t('IIUC 3-Factor Normalization Algorithm')}
@@ -1183,7 +1142,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
 
                   {/* Leaderboard Dense Table */}
-                  <div className="bg-[var(--surface)] rounded-[6px] border border-[var(--border)] overflow-hidden card-blue-shadow-static">
+                  <div className="admin-glass-card rounded-[6px] overflow-hidden card-blue-shadow-static">
                     <div className="p-3.5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-alt)]">
                       <h3 className="font-heading font-semibold text-xs text-[var(--text)] uppercase tracking-wider">
                         {t('Annual Standings Table')} ({rankingYear})
@@ -1243,7 +1202,7 @@ export const AdminDashboardPage: React.FC = () => {
                   {clubs.map((c) => (
                     <div
                       key={c.id}
-                      className="card-hover-lift bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] flex flex-col justify-between"
+                      className="card-hover-lift admin-glass-card rounded-[6px] p-4 flex flex-col justify-between"
                     >
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
@@ -1282,7 +1241,7 @@ export const AdminDashboardPage: React.FC = () => {
 
           {/* TAB VIEW 5: PROFILE */}
           {activeTab === 'PROFILE' && (
-            <div className="max-w-xl bg-[var(--surface)] p-5 rounded-[6px] border border-[var(--border)] card-blue-shadow-static space-y-4">
+            <div className="max-w-xl admin-glass-card p-5 rounded-[6px] card-blue-shadow-static space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[6px] bg-[var(--primary)] text-[var(--primary-contrast)] font-mono font-semibold text-sm flex items-center justify-center">
                   AD

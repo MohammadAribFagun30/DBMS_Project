@@ -64,7 +64,7 @@ export const ClubsPage: React.FC = () => {
             onClick={() => setActiveTab('RANKINGS')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-mono transition-colors cursor-pointer ${
               activeTab === 'RANKINGS'
-                ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                ? 'bg-[var(--primary)] text-[var(--primary-contrast)] dark:bg-[#B36836] dark:text-white dark:border-[#C87A3E] font-medium'
                 : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
@@ -76,7 +76,7 @@ export const ClubsPage: React.FC = () => {
             onClick={() => setActiveTab('DIRECTORY')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-mono transition-colors cursor-pointer ${
               activeTab === 'DIRECTORY'
-                ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                ? 'bg-[var(--primary)] text-[var(--primary-contrast)] dark:bg-[#B36836] dark:text-white dark:border-[#C87A3E] font-medium'
                 : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
@@ -109,7 +109,7 @@ export const ClubsPage: React.FC = () => {
                   onClick={() => setSelectedYear(yr)}
                   className={`px-2.5 py-1 rounded-[4px] transition-colors cursor-pointer ${
                     selectedYear === yr
-                      ? 'bg-[var(--primary)] text-[var(--primary-contrast)] font-medium'
+                      ? 'bg-[var(--primary)] text-[var(--primary-contrast)] dark:bg-[#B36836] dark:text-white font-medium'
                       : 'text-[var(--muted)] hover:text-[var(--text)]'
                   }`}
                 >
@@ -164,7 +164,7 @@ export const ClubsPage: React.FC = () => {
                       <td className="font-mono text-[var(--muted)]">
                         {Number(r.feedbackScore).toFixed(1)}
                       </td>
-                      <td className="font-mono font-semibold text-[var(--primary)]">
+                      <td className="font-mono font-semibold text-[var(--primary)] dark:text-[#F59E0B]">
                         {Number(r.finalScore).toFixed(2)} / 100
                       </td>
                     </tr>

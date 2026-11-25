@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 export const Footer: React.FC = () => {
   const { t, isBn } = useLanguage();
   return (
-    <footer className="bg-[var(--surface-alt)] text-[var(--muted)] text-xs border-t border-[var(--border)] transition-colors">
+    <footer className="bg-[var(--surface-alt)] text-[var(--muted)] text-xs border-t border-[var(--border)] relative z-10 transition-colors">
       <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">

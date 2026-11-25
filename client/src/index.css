@@ -36,9 +36,9 @@ html.dark, [data-theme="dark"] {
   --border: #33312A;
   --text: #ECE8DC;
   --muted: #9A9585;
-  --primary: #5DA583;
-  --primary-hover: #74B898;
-  --primary-contrast: #0F1A14;
+  --primary: #C47842;
+  --primary-hover: #D6874E;
+  --primary-contrast: #FFFFFF;
   --highlight: #D4A24C;
 
   /* STATUS COLORS (Dark) */
@@ -185,18 +185,184 @@ html.dark, [data-theme="dark"] {
   background-color: var(--primary-hover);
   border-color: var(--primary-hover);
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 22px -2px rgba(46, 133, 85, 0.50), 0 3px 8px -1px rgba(46, 133, 85, 0.30) !important;
+  box-shadow: 0 8px 22px -2px rgba(179, 104, 54, 0.45), 0 3px 8px -1px rgba(179, 104, 54, 0.25) !important;
 }
 html.dark .btn-primary:hover,
 [data-theme="dark"] .btn-primary:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px -2px rgba(93, 165, 131, 0.65), 0 3px 10px -1px rgba(93, 165, 131, 0.40) !important;
-  border-color: rgba(116, 184, 152, 0.85) !important;
+  background-color: #D6874E !important;
+  box-shadow: 0 8px 26px -2px rgba(215, 120, 50, 0.70), 0 3px 10px -1px rgba(215, 120, 50, 0.45) !important;
+  border-color: rgba(230, 138, 70, 0.90) !important;
 }
 .btn-primary:active {
   transform: translateY(0) !important;
   box-shadow: none !important;
 }
+
+/* Dedicated Event Card Register Button (Warm Terracotta in Dark Mode) */
+.btn-register-card {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease, background-color 150ms ease, border-color 150ms ease !important;
+}
+
+html.dark .btn-register-card,
+[data-theme="dark"] .btn-register-card {
+  background-color: #B36836 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #C87A3E !important;
+  box-shadow: 0 4px 14px -2px rgba(179, 104, 54, 0.40) !important;
+}
+
+html.dark .btn-register-card:hover,
+[data-theme="dark"] .btn-register-card:hover {
+  background-color: #C87A3E !important;
+  border-color: #DDA066 !important;
+  box-shadow: 0 8px 24px -2px rgba(179, 104, 54, 0.65), 0 3px 10px -1px rgba(179, 104, 54, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+
+html.dark .btn-register-card:active,
+[data-theme="dark"] .btn-register-card:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Dedicated Event Card Registered Badge (Forest Green) */
+.btn-registered-badge {
+  background-color: #2E6B4D !important;
+  color: #FFFFFF !important;
+  border: 1px solid #2E6B4D !important;
+}
+
+html.dark .btn-registered-badge,
+[data-theme="dark"] .btn-registered-badge {
+  background-color: #1F6E4A !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(46, 167, 109, 0.55) !important;
+  box-shadow: 0 4px 14px -2px rgba(31, 110, 74, 0.45) !important;
+}
+
+/* Dedicated Login CTA Button (Professional Royal Blue in Dark Mode) */
+.btn-login-submit {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease, background-color 150ms ease, border-color 150ms ease !important;
+}
+
+html.dark .btn-login-submit,
+[data-theme="dark"] .btn-login-submit {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+  border: 1px solid #3B82F6 !important;
+  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.45) !important;
+}
+
+html.dark .btn-login-submit:hover,
+[data-theme="dark"] .btn-login-submit:hover {
+  background-color: #1D4ED8 !important;
+  border-color: #60A5FA !important;
+  box-shadow: 0 8px 26px -2px rgba(37, 99, 235, 0.70), 0 3px 12px -1px rgba(37, 99, 235, 0.40) !important;
+  transform: translateY(-2px) !important;
+}
+
+html.dark .btn-login-submit:active,
+[data-theme="dark"] .btn-login-submit:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Dedicated Feedback Button (Star Amber/Gold in Dark Mode) */
+.btn-feedback-star {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease, background-color 150ms ease, border-color 150ms ease !important;
+}
+
+html.dark .btn-feedback-star,
+[data-theme="dark"] .btn-feedback-star {
+  background-color: #D4A24C !important;
+  color: #14130F !important;
+  border: 1px solid #E5B55E !important;
+  box-shadow: 0 4px 14px -2px rgba(212, 162, 76, 0.40) !important;
+  font-weight: 600 !important;
+}
+
+html.dark .btn-feedback-star:hover,
+[data-theme="dark"] .btn-feedback-star:hover {
+  background-color: #E5B55E !important;
+  border-color: #F3C978 !important;
+  box-shadow: 0 8px 22px -2px rgba(212, 162, 76, 0.60) !important;
+  transform: translateY(-2px) !important;
+}
+
+html.dark .btn-feedback-star:active,
+[data-theme="dark"] .btn-feedback-star:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Dedicated Certificate Verify Button (Security Blue in Dark Mode) */
+.btn-verify-badge {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease, background-color 150ms ease, border-color 150ms ease !important;
+}
+
+html.dark .btn-verify-badge,
+[data-theme="dark"] .btn-verify-badge {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+  border: 1px solid #3B82F6 !important;
+  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.45) !important;
+}
+
+html.dark .btn-verify-badge:hover,
+[data-theme="dark"] .btn-verify-badge:hover {
+  background-color: #1D4ED8 !important;
+  border-color: #60A5FA !important;
+  box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.65) !important;
+  transform: translateY(-2px) !important;
+}
+
+html.dark .btn-verify-badge:active,
+[data-theme="dark"] .btn-verify-badge:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Dedicated Ticket Pass Print Button (Royal Blue / Document Action in Dark Mode) */
+.btn-print-pass {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease, background-color 150ms ease, border-color 150ms ease !important;
+}
+
+html.dark .btn-print-pass,
+[data-theme="dark"] .btn-print-pass {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+  border: 1px solid #3B82F6 !important;
+  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.45) !important;
+}
+
+html.dark .btn-print-pass:hover,
+[data-theme="dark"] .btn-print-pass:hover {
+  background-color: #1D4ED8 !important;
+  border-color: #60A5FA !important;
+  box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.65) !important;
+  transform: translateY(-2px) !important;
+}
+
+html.dark .btn-print-pass:active,
+[data-theme="dark"] .btn-print-pass:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Atmospheric Frosted Glass Surfaces in Dark Mode to absorb ambient background lights */
+html.dark [class*="bg-[var(--surface)]"],
+[data-theme="dark"] [class*="bg-[var(--surface)]"] {
+  background-color: rgba(29, 28, 23, 0.88) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+html.dark [class*="bg-[var(--surface-alt)]"],
+[data-theme="dark"] [class*="bg-[var(--surface-alt)]"] {
+  background-color: rgba(38, 36, 30, 0.80) !important;
+}
+
 
 .btn-secondary {
   background-color: transparent;
@@ -391,4 +557,164 @@ html.dark .sidebar-glass-card,
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 10px rgba(0, 0, 0, 0.3) !important;
 }
+
+/* ==========================================================================
+   Ultra-Glassmorphism & Ambient Animations for Login & Auth Portals
+   ========================================================================== */
+
+.login-glass-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow: 0 24px 50px -12px rgba(59, 36, 24, 0.15),
+              0 0 0 1px rgba(255, 255, 255, 0.55),
+              inset 0 1px 2px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+html.dark .login-glass-card,
+[data-theme="dark"] .login-glass-card {
+  background: rgba(29, 28, 23, 0.62) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.60),
+              0 0 0 1px rgba(255, 255, 255, 0.06),
+              inset 0 1px 2px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.login-glass-chip {
+  background: rgba(255, 255, 255, 0.60) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 10px 30px -4px rgba(59, 36, 24, 0.08),
+              inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+html.dark .login-glass-chip,
+[data-theme="dark"] .login-glass-chip {
+  background: rgba(29, 28, 23, 0.60) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.45),
+              inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Ambient Floating & Drifting Keyframes */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(10px) rotate(-1deg);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+@keyframes drift-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(35px, -25px) scale(1.06);
+  }
+  66% {
+    transform: translate(-25px, 20px) scale(0.96);
+  }
+}
+
+@keyframes drift-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-30px, 25px) scale(0.95);
+  }
+  66% {
+    transform: translate(25px, -30px) scale(1.08);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 8.5s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 9s ease-in-out infinite;
+}
+
+.animate-drift-1 {
+  animation: drift-1 15s ease-in-out infinite;
+}
+
+.animate-drift-2 {
+  animation: drift-2 18s ease-in-out infinite;
+}
+
+@keyframes beam-sweep {
+  0% {
+    transform: translate(-30%, -30%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(30%, 30%);
+    opacity: 0;
+  }
+}
+
+.animate-beam-sweep {
+  animation: beam-sweep 16s ease-in-out infinite alternate;
+}
+
+/* Admin Dashboard Frosted Glass Cards & Containers */
+.admin-glass-card {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+}
+
+html.dark .admin-glass-card,
+[data-theme="dark"] .admin-glass-card {
+  background-color: rgba(20, 19, 15, 0.70) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+
 
