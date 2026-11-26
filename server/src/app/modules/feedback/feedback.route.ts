@@ -8,6 +8,7 @@ import { createFeedbackSchema } from "./feedback.validations";
 const router = Router();
 
 router.post("/", auth(Role.STUDENT), validateRequest(createFeedbackSchema), feedbackController.create);
+router.get("/my", auth(Role.STUDENT), feedbackController.getMy);
 router.get("/event/:eventId", feedbackController.getByEvent);
 router.get("/", auth(Role.ADMIN), feedbackController.getAll);
 router.delete("/:id", auth(Role.ADMIN), feedbackController.remove);

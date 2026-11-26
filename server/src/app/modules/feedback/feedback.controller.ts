@@ -9,6 +9,11 @@ const create = catchAsync(async (req, res) => {
   sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: "Anonymous feedback submitted", data: result });
 });
 
+const getMy = catchAsync(async (req, res) => {
+  const result = await feedbackServices.getMy(req.user!.id);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "User feedback history retrieved", data: result });
+});
+
 const getByEvent = catchAsync(async (req, res) => {
   const result = await feedbackServices.getByEvent(parseId(req.params.eventId, "eventId"));
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Event feedback retrieved", data: result });
@@ -24,4 +29,4 @@ const remove = catchAsync(async (req, res) => {
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Feedback deleted" });
 });
 
-export const feedbackController = { create, getByEvent, getAll, remove };
+export const feedbackController = { create, getMy, getByEvent, getAll, remove };

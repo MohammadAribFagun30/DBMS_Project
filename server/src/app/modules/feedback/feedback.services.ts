@@ -27,10 +27,36 @@ const create = async (userId: number, payload: FeedbackPayload) => {
     throw new AppError("Feedback is only available after the event has concluded", httpStatus.BAD_REQUEST);
   }
 
+  // Check if student already submitted feedback for this event
+  const alreadySubmitted = await prisma.auditLog.findFirst({
+    where: {
+      userId,
+      action: "FEEDBACK_SUBMITTED",
+      entityType: "events",
+      entityId: payload.eventId,
+    },
+  });
+  if (alreadySubmitted) {
+    throw new AppError("You have already submitted feedback for this event", httpStatus.CONFLICT);
+  }
+
   const feedback = await prisma.feedback.create({ data: payload });
-  // Audit log records that feedback was submitted for an event, not who wrote which feedback row.
-  await createAuditLog(undefined, "FEEDBACK_SUBMITTED", "events", payload.eventId);
+  // Audit log records that this user submitted feedback for this event, keeping rating & comments anonymous
+  await createAuditLog(userId, "FEEDBACK_SUBMITTED", "events", payload.eventId);
   return feedback;
+};
+
+// Returns the list of event IDs for which the student has submitted feedback
+const getMy = async (userId: number) => {
+  const logs = await prisma.auditLog.findMany({
+    where: {
+      userId,
+      action: "FEEDBACK_SUBMITTED",
+      entityType: "events",
+    },
+    select: { entityId: true },
+  });
+  return logs.map((l) => l.entityId).filter((id): id is number => typeof id === "number");
 };
 
 const getByEvent = async (eventId: number) => {
@@ -67,4 +93,4 @@ const remove = async (adminId: number, id: number) => {
   await createAuditLog(adminId, "FEEDBACK_DELETED", "feedbacks", id);
 };
 
-export const feedbackServices = { create, getByEvent, getAll, remove };
+export const feedbackServices = { create, getMy, getByEvent, getAll, remove };

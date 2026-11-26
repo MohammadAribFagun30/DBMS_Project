@@ -232,7 +232,11 @@ export const apiFeedback = {
   },
 
   getMy: async () => {
-    return await request<Feedback[]>('/feedbacks/my');
+    try {
+      return await request<number[]>('/feedbacks/my');
+    } catch {
+      return [];
+    }
   }
 };
 

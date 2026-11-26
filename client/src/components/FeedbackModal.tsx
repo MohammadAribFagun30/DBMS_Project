@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { apiFeedback } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 import { X, Star, ShieldCheck } from 'lucide-react';
 
 interface FeedbackModalProps {
   eventId: number | null;
   eventTitle: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (submittedEventId: number) => void;
 }
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({
@@ -23,6 +24,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   const [comments, setComments] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const toast = useToast();
+  const { isBn } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +35,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
         rating,
         comments: comments.trim() ? comments.trim() : undefined,
       });
-      toast.success('Thank you! Your feedback has been recorded anonymously.');
-      onSuccess();
+      toast.success(isBn ? 'ধন্যবাদ! আপনার ফিডব্যাক বেনামীভাবে রেকর্ড করা হয়েছে।' : 'Thank you! Your feedback has been recorded anonymously.');
+      onSuccess(eventId);
       onClose();
     } catch (err: any) {
       toast.error(err.message || 'Failed to submit feedback');
